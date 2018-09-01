@@ -13,7 +13,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.mlfq.panels.ProcessControlBlockPanel;
-import com.mlfq.utilities.Logger;
 import com.mlfq.utilities.NumberKeyListener;
 
 import net.miginfocom.swing.MigLayout;
@@ -28,13 +27,9 @@ public class ProcessNumberDialog extends JDialog implements ActionListener
 	private JButton submitButton, cancelButton;
 	
 	private NumberKeyListener numberKeyListener = NumberKeyListener.getInstance();
-	
-	private String condition;
 
-	public ProcessNumberDialog(String condition)
+	public ProcessNumberDialog()
 	{
-		this.condition = condition;
-		setName("ProcessNumberDialog");
 		setLayout(new MigLayout("fillx, insets 20"));
 		addComponents();
 		setSize(new Dimension(350, 150));
@@ -79,11 +74,7 @@ public class ProcessNumberDialog extends JDialog implements ActionListener
 				if (Integer.parseInt(textField.getText()) < 1 || Integer.parseInt(textField.getText()) > 20) {
 					JOptionPane.showMessageDialog(new JFrame(), "Number must be between 1 and 20.", "ERROR", JOptionPane.ERROR_MESSAGE);
 				} else {
-					if (condition.equalsIgnoreCase("randomized")) {
-						ProcessControlBlockPanel.generateRandomizedData(Integer.parseInt(textField.getText()));
-					} else if (condition.equalsIgnoreCase("user-defined")) {
-						
-					}
+					ProcessControlBlockPanel.generateRandomizedData(Integer.parseInt(textField.getText()));
 					dispose();
 				}
 			}

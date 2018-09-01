@@ -1,11 +1,9 @@
 package com.mlfq.utilities;
 
-import com.mlfq.data_structures.Queue;
 import com.mlfq.data_structures.Process;
 
 public class SchedulingAlgorithmsUtilities
 {
-//	private Queue queue = new Queue();
 	private final Process[] process;
 	
 	public SchedulingAlgorithmsUtilities(Process[] process)

@@ -3,6 +3,7 @@ package com.mlfq.panels;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.text.DecimalFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -12,8 +13,6 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-
-import com.mlfq.utilities.Logger;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -30,12 +29,10 @@ public class TimesPanel extends JPanel
 	private String[] header = {"PID", "Response Time", "Turnaround Time", "Waiting Time"}, averageHeader = {"", "", "", ""};
 	private Object[][] row = {}, averageRow = {};
 	
-	private static String componentName;
+	private static int[] responseTime, turnaroundTime, waitingTime;
 	
 	public TimesPanel()
 	{
-		setName("TimesPanel");
-		componentName = getName();
 		setBackground(Color.WHITE);
 		setLayout(new MigLayout("fillx, insets 20, wrap 1", "", "[][]0[]"));
 		setBorder(BorderFactory.createLineBorder(Color.BLUE, 3));
@@ -159,12 +156,12 @@ public class TimesPanel extends JPanel
 		add(scrollPane, "grow, align center");
 		add(averageScrollPane, "grow, align center, height 100%");
 		
-		addRow("1", "6.00", "54.00", "6.00");
-		addRow("2", "6.00", "54.00", "6.00");
-		addRow("3", "6.00", "54.00", "6.00");
-		addRow("4", "6.00", "54.00", "6.00");
+//		addRow("1", "6.00", "54.00", "6.00");
+//		addRow("2", "6.00", "54.00", "6.00");
+//		addRow("3", "6.00", "54.00", "6.00");
+//		addRow("4", "6.00", "54.00", "6.00");
 		
-		addAverageRow("AVERAGE", "10.00", "20.00", "30.00");
+		addAverageRow("AVERAGE", "", "", "");
 	}
 	
 	public void addRow(String pID, String responseTime, String turnaroundTime, String waitingTime)
@@ -182,7 +179,53 @@ public class TimesPanel extends JPanel
 		tableModel.setRowCount(0);
 		averageTableModel.setRowCount(0);
 		addAverageRow("AVERAGE", "", "", "");
-		Logger.printToConsole(componentName, "INFORMATION", "Data cleared.");
+	}
+	
+	public static void initializeTimes(int processSize)
+	{
+		responseTime = new int[processSize];
+		turnaroundTime = new int[processSize];
+		waitingTime = new int[processSize];
+		
+		for(int i = 0; i < processSize; i++) {
+			tableModel.addRow(new Object[] {"" + (i + 1), "", "", ""});
+		}
+	}
+	
+	public static void responseTime(int firstExecution, int arrivalTime, int pID)
+	{
+		// response time = first execution - arrival time
+		responseTime[pID - 1] += (firstExecution - arrivalTime);
+		tableModel.setValueAt(responseTime[pID - 1], pID - 1, 1);
+		averageTimes(responseTime, 1);
+	}
+	
+	public static void turnaroundTime(int completionTime, int arrivalTime, int pID)
+	{
+		// turnaround time = completion - arrival time
+		turnaroundTime[pID - 1] += (completionTime - arrivalTime);
+		tableModel.setValueAt(turnaroundTime[pID - 1], pID - 1, 2);
+		averageTimes(turnaroundTime, 2);
+	}
+	
+	public static void waitingTime(int burstTime, int pID)
+	{
+		// waiting time = turnaround time - burst time
+		waitingTime[pID - 1] += (turnaroundTime[pID - 1] - burstTime);
+		tableModel.setValueAt(waitingTime[pID - 1], pID - 1, 3);
+		averageTimes(waitingTime, 3);
+	}
+	
+	private static void averageTimes(int[] time, int column)
+	{
+		float average = 0;
+		for(int i = 0; i < time.length; i++) {
+			average += time[i];
+		}
+		
+		average /= time.length;
+		
+		averageTableModel.setValueAt(average, 0, column);
 	}
 	
 	private class CellRenderer extends DefaultTableCellRenderer
@@ -190,7 +233,7 @@ public class TimesPanel extends JPanel
         private static final long serialVersionUID = 1L;
         
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
-        {
+        { 
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             
             setFont(new Font("Verdana", Font.PLAIN, 16));
@@ -205,16 +248,27 @@ public class TimesPanel extends JPanel
 	{
         private static final long serialVersionUID = 1L;
         
+        private final DecimalFormat format = new DecimalFormat("#0.00");
+        
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
         {
-            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             
-            setFont(new Font("Verdana", (column == 0 ? Font.BOLD : Font.PLAIN), 16));
+            if (column != 0) {
+            	String s;
+            	try {
+            		Double d = Double.parseDouble(String.valueOf(value));
+            		s = format.format(d);
+                	component = super.getTableCellRendererComponent(table, s, isSelected, hasFocus, row, column);
+            	} catch (NumberFormatException ex) { }
+            }
+            
+            component.setFont(new Font("Verdana", (column == 0 ? Font.BOLD : Font.PLAIN), 16));
             setHorizontalAlignment(SwingConstants.CENTER);
-            setBackground(new Color(0, 128, 129, (column != 0 ? 150 : 255)));
+            component.setBackground(new Color(0, 128, 129, (column != 0 ? 150 : 255)));
             setBorder(BorderFactory.createMatteBorder(0, (column == 0 ? 1 : 0), 1, (column == 3 ? 1 : 0), Color.BLACK));
 
-            return this;
+            return component;
         }   
     }
 }

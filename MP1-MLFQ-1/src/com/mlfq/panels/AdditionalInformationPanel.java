@@ -14,8 +14,6 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import com.mlfq.utilities.Logger;
-
 import net.miginfocom.swing.MigLayout;
 
 public class AdditionalInformationPanel extends JPanel
@@ -24,21 +22,17 @@ public class AdditionalInformationPanel extends JPanel
 
 	private JLabel titleLabel;
 	private JTable table;
-	private static JTextField outputField, policyField;
-	private JLabel outputLabel, policyLabel;
-	private JScrollPane scrollPane, outputScrollPane;
+	private static JTextField /*outputField,*/ policyField;
+	private JLabel /*outputLabel,*/ policyLabel;
+	private JScrollPane scrollPane/*, outputScrollPane*/;
 	
 	private static DefaultTableModel tableModel;
 	
 	private String[] header = {"Queue #", "Classical Scheduling Algorithm"};
 	private Object[][] row = {};
 	
-	private static String componentName;
-	
 	public AdditionalInformationPanel()
 	{
-		setName("AdditionalInformationPanel");
-		componentName = getName();
 		setBackground(Color.WHITE);
 		setLayout(new MigLayout("fillx, insets 20, wrap 1"));
 		setBorder(BorderFactory.createLineBorder(Color.GREEN, 3));
@@ -105,46 +99,43 @@ public class AdditionalInformationPanel extends JPanel
         scrollPane.getViewport().setBackground(Color.WHITE);
         scrollPane.getVerticalScrollBar().setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, Color.BLACK));
 		
-		outputLabel = new JLabel("Output", JLabel.CENTER);
-		outputLabel.setFont(new Font("Verdana", Font.BOLD, 14));
-		outputField = new JTextField();
-		outputField.setFont(new Font("Verdana", Font.PLAIN, 12));
-		outputField.setHorizontalAlignment(JTextField.CENTER);
-		outputField.setText(" P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1");
-		outputField.setEditable(false);
-		outputField.setBackground(Color.WHITE);
-		outputField.setBorder(BorderFactory.createEmptyBorder());
-		
-		outputScrollPane = new JScrollPane(outputField, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		outputScrollPane.setViewportBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-		outputScrollPane.setBorder(BorderFactory.createEmptyBorder());
-		outputScrollPane.setBackground(Color.WHITE);
-		outputScrollPane.getViewport().setBackground(Color.WHITE);
+//		outputLabel = new JLabel("Output", JLabel.CENTER);
+//		outputLabel.setFont(new Font("Verdana", Font.BOLD, 14));
+//		outputField = new JTextField();
+//		outputField.setFont(new Font("Verdana", Font.PLAIN, 12));
+//		outputField.setHorizontalAlignment(JTextField.CENTER);
+//		outputField.setText(" P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1 P1");
+//		outputField.setEditable(false);
+//		outputField.setBackground(Color.WHITE);
+//		outputField.setBorder(BorderFactory.createEmptyBorder());
+//		
+//		outputScrollPane = new JScrollPane(outputField, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+//		outputScrollPane.setViewportBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+//		outputScrollPane.setBorder(BorderFactory.createEmptyBorder());
+//		outputScrollPane.setBackground(Color.WHITE);
+//		outputScrollPane.getViewport().setBackground(Color.WHITE);
 		
 		policyLabel = new JLabel("Priority Policy", JLabel.CENTER);
 		policyLabel.setFont(new Font("Verdana", Font.BOLD, 14));
 		policyField = new JTextField();
 		policyField.setFont(new Font("Verdana", Font.PLAIN, 12));
 		policyField.setHorizontalAlignment(JTextField.CENTER);
-		policyField.setText("higher before lower");
+//		policyField.setText("higher before lower");
 		policyField.setEditable(false);
 		
 		add(titleLabel, "grow, align center, gapbottom 3%");
-		add(scrollPane, "grow, align center, height 27%");
-		add(outputLabel, "grow, align center");
-		add(outputScrollPane, "grow, align center");
+		add(scrollPane, "grow, align center, height 36%, gapbottom 5%");
+//		add(outputLabel, "grow, align center");
+//		add(outputScrollPane, "grow, align center");
 		add(policyLabel, "grow, align center");
 		add(policyField, "grow, align center");
 		
-		addRow("1", "First Come First Serve");
-		addRow("2", "Shortest Job First");
-		addRow("3", "Shortest Remaining Time First");
-		addRow("4", "Preemptive Priority Scheduling");
-		addRow("5", "Non-preemptive Priority Scheduling");
-		addRow("6", "Round Robin");
+//		addRow("1", "First Come First Serve");
+//		addRow("2", "Shortest Job First");
+//		addRow("3", "Shortest Remaining Time First");
 	}
 	
-	public void addRow(String queueNumber, String schedulingAlgorithm)
+	public static void addRow(String queueNumber, String schedulingAlgorithm)
 	{
 		tableModel.addRow(new Object[] {queueNumber, schedulingAlgorithm});
 	}
@@ -152,9 +143,17 @@ public class AdditionalInformationPanel extends JPanel
 	public static void clearComponents()
 	{
 		tableModel.setRowCount(0);
-		outputField.setText(" ");
+//		outputField.setText(" ");
 		policyField.setText(" ");
-		Logger.printToConsole(componentName, "INFORMATION", "Data cleared.");
+	}
+	
+	public static void setDisplayAlgoAndPolicy(String[] algorithms, String policy)
+	{
+		for(int i = 0; i < algorithms.length; i++) {
+			addRow("" + (i + 1), algorithms[i]);
+		}
+		
+		policyField.setText(policy);
 	}
 	
 	private class CellRenderer extends DefaultTableCellRenderer

@@ -8,11 +8,13 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
+import com.mlfq.dialogs.ImplementAlgorithmDialog;
 import com.mlfq.dialogs.ProcessNumberDialog;
+import com.mlfq.dialogs.UserDefinedProcessesDialog;
 import com.mlfq.panels.AdditionalInformationPanel;
+import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.panels.ProcessControlBlockPanel;
 import com.mlfq.panels.TimesPanel;
-import com.mlfq.utilities.Logger;
 
 public class MenuBar extends JMenuBar implements ActionListener
 {
@@ -20,12 +22,12 @@ public class MenuBar extends JMenuBar implements ActionListener
 
 	private JMenuBar menuBar;
 	private JMenu app, process, run, tests, generate;
-	private JMenuItem clear, help, exit, implement, use;
+	private JMenuItem clear, help, exit, use;
+	private static JMenuItem implement;
 	private JMenuItem randomized, userDefined;
 	
 	public MenuBar()
 	{
-		setName("MenuBar");
 		menuBar = new JMenuBar();
 		menuComponents();
 		addListenerToComponents();
@@ -119,29 +121,32 @@ public class MenuBar extends JMenuBar implements ActionListener
 		implement.addActionListener(this);
 		use.addActionListener(this);
 	}
+	
+	public static void setEnabledImplementButton(boolean bool)
+	{
+		implement.setEnabled(bool);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent event)
 	{
 		if (event.getSource() == clear) {
-			Logger.printToConsole(getName(), "INFORMATION", "Clearing data from components.");
 			ProcessControlBlockPanel.clearComponents();
 			TimesPanel.clearComponents();
 			AdditionalInformationPanel.clearComponents();
+			GanttChartPanel.clearComponents();
+			setEnabledImplementButton(false);
 		} else if (event.getSource() == help) {
 			
 		} else if (event.getSource() == randomized) {
-			Logger.printToConsole(getName(), "INFORMATION", "Getting number of processes to be generated.");
-			new ProcessNumberDialog("randomized");
+			new ProcessNumberDialog();
 		} else if (event.getSource() == userDefined) {
-			Logger.printToConsole(getName(), "INFORMATION", "Getting number of processes to be generated.");
-			new ProcessNumberDialog("user-defined");
+			new UserDefinedProcessesDialog();
 		} else if (event.getSource() == implement) {
-			
+			new ImplementAlgorithmDialog();
 		} else if (event.getSource() == use) {
 			
 		} else if (event.getSource() == exit) {
-			Logger.printToConsole(getName(), "INFORMATION", "Application exiting.");
 			System.exit(0);
 		}
 	}

@@ -14,7 +14,7 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import com.mlfq.utilities.Logger;
+import com.mlfq.menu_bar.MenuBar;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -29,14 +29,11 @@ public class ProcessControlBlockPanel extends JPanel
 	private static DefaultTableModel tableModel;
 	
 	private String[] header = {"PID", "Arrival Time", "CPU Burst Time", "Priority"};
+//	private String[] header = {"PID", "<html>Arrival<br/>Time</html>", "<html>CPU<br/>Burst<br/>Time</html>", "Priority"};
 	private Object[][] row = {};
-	
-	private static String componentName;
 	
 	public ProcessControlBlockPanel()
 	{
-		setName("ProcessControlBlockPanel");
-		componentName = getName();
 		setBackground(Color.WHITE);
 		setLayout(new MigLayout("fillx, insets 20, wrap 1"));
 		setBorder(BorderFactory.createLineBorder(Color.RED, 3));
@@ -118,7 +115,6 @@ public class ProcessControlBlockPanel extends JPanel
 	public static void clearComponents()
 	{
 		tableModel.setRowCount(0);
-		Logger.printToConsole(componentName, "INFORMATION", "Data cleared.");
 	}
 	
 	public static void generateRandomizedData(int numberOfProcesses)
@@ -127,9 +123,22 @@ public class ProcessControlBlockPanel extends JPanel
 		
 		tableModel.setRowCount(0);
 		for(int i = 0; i < numberOfProcesses; i++) {
-			addRow(i + 1, random.nextInt(50), random.nextInt(50), random.nextInt(40));
+			addRow(i + 1, random.nextInt(51), random.nextInt(50) + 1, random.nextInt(40) + 1);
 		}
-		Logger.printToConsole(componentName, "INFORMATION", "Generated " + numberOfProcesses + " random data successfully.");
+		MenuBar.setEnabledImplementButton(true);
+	}
+	
+	public static void getUserDefinedTable(JTable table)
+	{
+		for(int i = 0; i < table.getRowCount(); i++) {
+			addRow(Integer.parseInt(table.getValueAt(i, 0).toString()), Integer.parseInt(table.getValueAt(i, 1).toString()), Integer.parseInt(table.getValueAt(i, 2).toString()), Integer.parseInt(table.getValueAt(i, 3).toString()));
+		}
+		MenuBar.setEnabledImplementButton(true);
+	}
+	
+	public static DefaultTableModel getTableModel()
+	{
+		return tableModel;
 	}
 	
 	private class CellRenderer extends DefaultTableCellRenderer

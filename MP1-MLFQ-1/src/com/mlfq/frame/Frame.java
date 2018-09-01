@@ -67,6 +67,4 @@ public class Frame extends JFrame
 		add(topPanel, "width 100%, height 100%");
 		add(bottomPanel, "width 100%, height 100%");
 	}
-	
-	
 }
