@@ -11,6 +11,8 @@ import javax.swing.table.DefaultTableModel;
 import com.mlfq.data_structures.Process;
 import com.mlfq.panels.TimesPanel;
 import com.mlfq.scheduling_algorithms.FirstComeFirstServe;
+import com.mlfq.scheduling_algorithms.ShortestJobFirst;
+import com.mlfq.scheduling_algorithms.ShortestRemainingTimeFirst;
 
 public class MLFQHandler
 {	
@@ -73,8 +75,10 @@ public class MLFQHandler
 					new FirstComeFirstServe(process);
 					break;
 				case 1:
+					new ShortestJobFirst(process);
 					break;
 				case 2:
+					new ShortestRemainingTimeFirst(process);
 					break;
 				case 3:
 					break;

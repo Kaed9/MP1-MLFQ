@@ -32,7 +32,10 @@ public class GanttChartPanel extends JPanel
 	private void addComponents()
 	{
 		titleLabel = new JLabel("GANTT CHART", JLabel.CENTER);
-		titleLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.lightGray));
+		titleLabel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createMatteBorder(0, 0, 2, 0, Color.lightGray),
+				BorderFactory.createEmptyBorder(0, 0, 5, 0)
+				));
 		titleLabel.setFont(new Font("Verdana", Font.BOLD, 28));
 		
 		panel = new JPanel(new MigLayout("insets 0", "[]0[]"));

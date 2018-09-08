@@ -4,14 +4,14 @@ import com.mlfq.data_structures.Process;
 
 public class SchedulingAlgorithmsUtilities
 {
-	private final Process[] process;
+//	private final Process[] process;
 	
-	public SchedulingAlgorithmsUtilities(Process[] process)
+	public SchedulingAlgorithmsUtilities()
 	{
-		this.process = process;
+//		this.process = process;
 	}
 	
-	public int getSmallestNum(int num[], int c)
+	public static int getSmallestNum(int num[], int c)
 	{
 		int temp = -1; boolean flag = false;
 		
@@ -50,7 +50,7 @@ public class SchedulingAlgorithmsUtilities
 		return temp;
 	}
 	
-	public int totalTime(int c)
+	public static int totalTime(int c, Process[] process)
 	{
 		int count = 0;
 		
