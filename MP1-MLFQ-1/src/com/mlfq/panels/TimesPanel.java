@@ -2,6 +2,7 @@ package com.mlfq.panels;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.text.DecimalFormat;
 
@@ -26,7 +27,8 @@ public class TimesPanel extends JPanel
 	
 	private static DefaultTableModel tableModel, averageTableModel;
 
-	private String[] header = {"PID", "Response Time", "Turnaround Time", "Waiting Time"}, averageHeader = {"", "", "", ""};
+//	private String[] header = {"PID", "Response Time", "Turnaround Time", "Waiting Time"}, averageHeader = {"", "", "", ""};
+ 	private String[] header = {"PID", "<html>Response<br/>&nbsp&nbsp Time</html>", "<html>Turnaround<br/>&nbsp&nbsp&nbsp&nbsp Time</html>", "<html>Waiting<br/>&nbsp Time</html>"}, averageHeader = {"", "", "", ""};
 	private Object[][] row = {}, averageRow = {};
 	
 	private static int[] responseTime, turnaroundTime, waitingTime;
@@ -67,13 +69,14 @@ public class TimesPanel extends JPanel
 			{
 				super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				
-				setFont(new Font("Verdana", Font.BOLD, 14));
+				setFont(new Font("Verdana", Font.BOLD, (column == 2 ? 12 : 14)));
 				setHorizontalAlignment(SwingConstants.CENTER);
 				setBorder(BorderFactory.createCompoundBorder(
 						BorderFactory.createMatteBorder(0, 1, 0, 0, Color.BLACK),
 						BorderFactory.createEmptyBorder(5, 0, 5, 0)
 						));
 				setBackground(new Color(0, 0, 255));
+				setForeground(new Color(255, 255, 0));
 				
 				return this;
 			}
@@ -81,6 +84,9 @@ public class TimesPanel extends JPanel
 		});
 		table.getTableHeader().setBorder(BorderFactory.createMatteBorder(1, 0, 0, 1, Color.BLACK));
 		table.getTableHeader().setBackground(new Color(0, 0, 255));
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		table.getTableHeader().setPreferredSize(new Dimension(table.getTableHeader().getWidth(), 40));
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		tableModel = new DefaultTableModel();
 		tableModel.setColumnIdentifiers(header);
 		table.setModel(tableModel);
@@ -89,6 +95,7 @@ public class TimesPanel extends JPanel
 		table.getColumnModel().getColumn(1).setCellRenderer(cellRenderer);
 		table.getColumnModel().getColumn(2).setCellRenderer(cellRenderer);
 		table.getColumnModel().getColumn(3).setCellRenderer(cellRenderer);
+		table.getColumnModel().getColumn(0).setMaxWidth(50);
 		table.setShowGrid(false);
 		table.setRowHeight(25);
 		table.setShowVerticalLines(false);
@@ -129,7 +136,6 @@ public class TimesPanel extends JPanel
 				
 				return this;
 			}
-			
 		});
 		averageTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(1, 0, 0, 1, Color.BLACK));
 		averageTable.getTableHeader().setBackground(new Color(0, 0, 255));
@@ -142,6 +148,7 @@ public class TimesPanel extends JPanel
 		averageTable.getColumnModel().getColumn(1).setCellRenderer(cellRenderer1);
 		averageTable.getColumnModel().getColumn(2).setCellRenderer(cellRenderer1);
 		averageTable.getColumnModel().getColumn(3).setCellRenderer(cellRenderer1);
+		averageTable.getColumnModel().getColumn(0).setMaxWidth(50);
 		averageTable.setShowGrid(false);
 		averageTable.setRowHeight(25);
 		averageTable.setShowVerticalLines(false);
@@ -154,14 +161,9 @@ public class TimesPanel extends JPanel
         
 		add(titleLabel, "grow, align center, gapbottom 3%");
 		add(scrollPane, "grow, align center");
-		add(averageScrollPane, "grow, align center, height 100%");
+		add(averageScrollPane, "grow, align center, height 41%");
 		
-//		addRow("1", "6.00", "54.00", "6.00");
-//		addRow("2", "6.00", "54.00", "6.00");
-//		addRow("3", "6.00", "54.00", "6.00");
-//		addRow("4", "6.00", "54.00", "6.00");
-		
-		addAverageRow("AVERAGE", "", "", "");
+		addAverageRow("AVE", "", "", "");
 	}
 	
 	public void addRow(String pID, String responseTime, String turnaroundTime, String waitingTime)
@@ -178,7 +180,7 @@ public class TimesPanel extends JPanel
 	{
 		tableModel.setRowCount(0);
 		averageTableModel.setRowCount(0);
-		addAverageRow("AVERAGE", "", "", "");
+		addAverageRow("AVE", "", "", "");
 	}
 	
 	public static void initializeTimes(int processSize)
@@ -263,11 +265,12 @@ public class TimesPanel extends JPanel
             	} catch (NumberFormatException ex) { }
             }
             
-            component.setFont(new Font("Verdana", (column == 0 ? Font.BOLD : Font.PLAIN), 16));
+            component.setFont(new Font("Verdana", (column == 0 ? Font.BOLD : Font.PLAIN), 15));
             setHorizontalAlignment(SwingConstants.CENTER);
             component.setBackground(new Color(0, 128, 129, (column != 0 ? 150 : 255)));
             setBorder(BorderFactory.createMatteBorder(0, (column == 0 ? 1 : 0), 1, (column == 3 ? 1 : 0), Color.BLACK));
-
+            setForeground(column == 0 ? new Color(255, 255, 0) : Color.BLACK);
+            
             return component;
         }   
     }

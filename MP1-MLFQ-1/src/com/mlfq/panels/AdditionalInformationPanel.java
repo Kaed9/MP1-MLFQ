@@ -2,6 +2,7 @@ package com.mlfq.panels;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 
 import javax.swing.BorderFactory;
@@ -67,20 +68,24 @@ public class AdditionalInformationPanel extends JPanel
 			{
 				super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				
-				setFont(new Font("Verdana", Font.BOLD, 14));
+				setFont(new Font("Verdana", Font.BOLD, column == 0 ? 14 : 15));
 				setHorizontalAlignment(SwingConstants.CENTER);
 				setBorder(BorderFactory.createCompoundBorder(
 						BorderFactory.createMatteBorder(0, 1, 0, 0, Color.BLACK),
 						BorderFactory.createEmptyBorder(5, 0, 5, 0)
 						));
-				setBackground(new Color(0, 255, 0));
+				setBackground(new Color(0, 155, 0));
+				setForeground(new Color(255, 255, 0));
 				
 				return this;
 			}
 			
 		});
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setBorder(BorderFactory.createMatteBorder(1, 0, 0, 1, Color.BLACK));
 		table.getTableHeader().setBackground(new Color(0, 255, 0));
+		table.getTableHeader().setPreferredSize(new Dimension(table.getTableHeader().getWidth(), 40));
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		tableModel = new DefaultTableModel();
 		tableModel.setColumnIdentifiers(header);
 		table.setModel(tableModel);
@@ -116,15 +121,15 @@ public class AdditionalInformationPanel extends JPanel
 //		outputScrollPane.getViewport().setBackground(Color.WHITE);
 		
 		policyLabel = new JLabel("Priority Policy", JLabel.CENTER);
-		policyLabel.setFont(new Font("Verdana", Font.BOLD, 14));
+		policyLabel.setFont(new Font("Verdana", Font.BOLD, 18));
 		policyField = new JTextField();
-		policyField.setFont(new Font("Verdana", Font.PLAIN, 12));
+		policyField.setFont(new Font("Verdana", Font.PLAIN, 16));
 		policyField.setHorizontalAlignment(JTextField.CENTER);
 //		policyField.setText("higher before lower");
 		policyField.setEditable(false);
 		
 		add(titleLabel, "grow, align center, gapbottom 3%");
-		add(scrollPane, "grow, align center, height 36%, gapbottom 5%");
+		add(scrollPane, "grow, align center, height 36%, gapbottom 15%");
 //		add(outputLabel, "grow, align center");
 //		add(outputScrollPane, "grow, align center");
 		add(policyLabel, "grow, align center");

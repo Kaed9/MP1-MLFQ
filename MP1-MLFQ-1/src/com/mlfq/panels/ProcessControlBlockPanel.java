@@ -2,6 +2,7 @@ package com.mlfq.panels;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.util.Random;
 
@@ -28,8 +29,8 @@ public class ProcessControlBlockPanel extends JPanel
 	
 	private static DefaultTableModel tableModel;
 	
-	private String[] header = {"PID", "Arrival Time", "CPU Burst Time", "Priority"};
-//	private String[] header = {"PID", "<html>Arrival<br/>Time</html>", "<html>CPU<br/>Burst<br/>Time</html>", "Priority"};
+//	private String[] header = {"PID", "Arrival Time", "CPU Burst Time", "Priority"};
+	private String[] header = {"PID", "<html>Arrival<br/>Time</html>", "<html>CPU Burst<br/>&nbsp&nbsp&nbsp Time</html>", "Priority"};
 	private Object[][] row = {};
 	
 	public ProcessControlBlockPanel()
@@ -42,7 +43,7 @@ public class ProcessControlBlockPanel extends JPanel
 	
 	private void addComponents()
 	{
-		titleLabel = new JLabel("PROCESS CONTROL BLOCK", JLabel.CENTER);
+		titleLabel = new JLabel("PCB", JLabel.CENTER);
 		titleLabel.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createMatteBorder(0, 0, 2, 0, Color.lightGray),
 				BorderFactory.createEmptyBorder(0, 0, 5, 0)
@@ -68,22 +69,26 @@ public class ProcessControlBlockPanel extends JPanel
 			{
 				super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				
-				setFont(new Font("Verdana", Font.BOLD, 14));
+				setFont(new Font("Verdana", Font.BOLD, (column == 2 ? 13 : (column == 3 ? 15 : 14))));
 				setHorizontalAlignment(SwingConstants.CENTER);
 				setBorder(BorderFactory.createCompoundBorder(
 						BorderFactory.createMatteBorder(0, 1, 0, 0, Color.BLACK),
 						BorderFactory.createEmptyBorder(5, 0, 5, 0)
 						));
 				setBackground(new Color(255, 0, 0));
+				setForeground(new Color(255, 255, 0));
 				
 				return this;
 			}
 			
 		});
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setBorder(BorderFactory.createMatteBorder(1, 0, 0, 1, Color.BLACK));
 		table.getTableHeader().setBackground(new Color(255, 0, 0));
+		table.getTableHeader().setPreferredSize(new Dimension(table.getTableHeader().getWidth(), 40));
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		tableModel = new DefaultTableModel();
-		tableModel.setColumnIdentifiers(header);
+		tableModel.setColumnIdentifiers(header); 
 		table.setModel(tableModel);
 		CellRenderer cellRenderer = new CellRenderer();
 		table.getColumnModel().getColumn(0).setCellRenderer(cellRenderer);
@@ -91,7 +96,7 @@ public class ProcessControlBlockPanel extends JPanel
 		table.getColumnModel().getColumn(2).setCellRenderer(cellRenderer);
 		table.getColumnModel().getColumn(3).setCellRenderer(cellRenderer);
 		table.getColumnModel().getColumn(0).setMaxWidth(50);
-		table.getColumnModel().getColumn(3).setMaxWidth(150);
+//		table.getColumnModel().getColumn(3).setMaxWidth(150);
 		table.setShowGrid(false);
 		table.setRowHeight(25);
 		table.setShowVerticalLines(false);

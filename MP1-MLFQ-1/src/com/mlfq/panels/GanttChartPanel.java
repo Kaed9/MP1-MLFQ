@@ -48,7 +48,7 @@ public class GanttChartPanel extends JPanel
 	public static void addToGanttChart(int pID, int counter)
 	{
 		JLabel label = new JLabel((pID == 0 ? " " : "P" + pID), JLabel.CENTER);
-		label.setPreferredSize(new Dimension(60, 150));
+		label.setPreferredSize(new Dimension(60, 70));
 		label.setOpaque(true);
 		label.setBackground(MLFQHandler.getColorByProcessId(pID));
 		label.setFont(new Font("Verdana", Font.PLAIN, 20));

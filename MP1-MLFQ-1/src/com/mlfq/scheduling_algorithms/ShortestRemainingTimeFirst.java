@@ -3,6 +3,7 @@ package com.mlfq.scheduling_algorithms;
 import com.mlfq.data_structures.Process;
 import com.mlfq.data_structures.Queue;
 import com.mlfq.panels.GanttChartPanel;
+import com.mlfq.panels.TimesPanel;
 import com.mlfq.utilities.SchedulingAlgorithmsUtilities;
 
 public class ShortestRemainingTimeFirst
@@ -15,10 +16,11 @@ public class ShortestRemainingTimeFirst
 		{
 			public void run()
 			{
-				boolean[] isAvailable = new boolean[process.length];
+				boolean[] isAvailable = new boolean[process.length], responseTimeDone = new boolean[process.length];
 				int[] burst = new int[process.length], tempB = new int[process.length], arrival = new int[process.length];
 				
 				for(int i = 0; i < srtfProcess.length; i++) {
+					responseTimeDone[i] = false;
 					isAvailable[i] = false;
 					burst[i] = srtfProcess[i].getBurstTime();
 					tempB[i] = 0;
@@ -50,6 +52,10 @@ public class ShortestRemainingTimeFirst
 					
 					for(int j = 0; j < srtfProcess.length; j++) {
 						if (isAvailable[j] = true && SchedulingAlgorithmsUtilities.getSmallestNum(tempB,0) != -1 && burst[j] == SchedulingAlgorithmsUtilities.getSmallestNum(tempB,0) && flag == false) {
+							if (!responseTimeDone[j]) {
+								TimesPanel.responseTime(counter, srtfProcess[j].getArrivalTime(), srtfProcess[j].getProcessID());
+								responseTimeDone[j] = true;
+							}
 							if (i == SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1)) {
 								queue.initialProcess(srtfProcess[j]);
 								burst[j]--;
@@ -71,6 +77,11 @@ public class ShortestRemainingTimeFirst
 						try {
 							Thread.sleep(100);
 						} catch (InterruptedException ex) { }
+						
+						if (burst[j] == 0) {
+							TimesPanel.turnaroundTime(counter, srtfProcess[j].getArrivalTime(), srtfProcess[j].getProcessID());
+							TimesPanel.waitingTime(srtfProcess[j].getBurstTime(), srtfProcess[j].getProcessID());
+						}
 					}
 				}
 			}

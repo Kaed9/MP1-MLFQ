@@ -11,6 +11,9 @@ import javax.swing.table.DefaultTableModel;
 import com.mlfq.data_structures.Process;
 import com.mlfq.panels.TimesPanel;
 import com.mlfq.scheduling_algorithms.FirstComeFirstServe;
+import com.mlfq.scheduling_algorithms.NonPreemptivePriorityScheduling;
+import com.mlfq.scheduling_algorithms.PreemptivePriorityScheduling;
+import com.mlfq.scheduling_algorithms.RoundRobin;
 import com.mlfq.scheduling_algorithms.ShortestJobFirst;
 import com.mlfq.scheduling_algorithms.ShortestRemainingTimeFirst;
 
@@ -81,10 +84,13 @@ public class MLFQHandler
 					new ShortestRemainingTimeFirst(process);
 					break;
 				case 3:
+					new PreemptivePriorityScheduling(process);
 					break;
 				case 4:
+					new NonPreemptivePriorityScheduling(process);
 					break;
 				case 5:
+					new RoundRobin(process, Integer.parseInt(quantumTime.get(0).getText()));
 					break;
 				default:
 					break;

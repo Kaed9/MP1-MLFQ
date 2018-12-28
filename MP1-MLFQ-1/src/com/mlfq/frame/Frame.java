@@ -30,7 +30,7 @@ public class Frame extends JFrame
 	public Frame()
 	{
 		super("Multiple Feedback Queue Scheduling");
-		setLayout(new MigLayout("fillx, insets 20, wrap 1", "[grow]", "[grow, 55%]20[grow, 45%]"));
+		setLayout(new MigLayout("fillx, insets 20, wrap 1", "[grow]", "[grow, 50%]20[grow, 25%]"));
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception ex) {
@@ -48,21 +48,37 @@ public class Frame extends JFrame
 		menuBar = new MenuBar();
 		setJMenuBar(menuBar.getMenuBar());
 		
-		topPanel = new JPanel(new MigLayout("fillx, insets 0", "[grow, 35%]20[grow, 65%]", "[fill]"));
+		topPanel = new JPanel(new MigLayout("fillx, insets 0", "[grow, 35%]20[grow, 5%]20[grow, 35%]", "[fill]"));
 		topPanel.setBackground(Color.GRAY);
 		
 		processControlBlockPanel = new ProcessControlBlockPanel();
-		ganttChartPanel = new GanttChartPanel();
+		additionalInformationPanel = new AdditionalInformationPanel();
+		timesPanel = new TimesPanel();
 		topPanel.add(processControlBlockPanel, "width 100%, height 100%");
-		topPanel.add(ganttChartPanel, "width 100%, height 100%");
+		topPanel.add(additionalInformationPanel, "width 100%, height 100%");
+		topPanel.add(timesPanel, "width 100%, height 100%");
 		
-		bottomPanel = new JPanel(new MigLayout("fillx, insets 0", "[grow, 50%]20[grow, 50%]", "[fill]"));
+		bottomPanel = new JPanel(new MigLayout("fillx, insets 0", "", "[fill]"));
 		bottomPanel.setBackground(Color.GRAY);
 		
-		timesPanel = new TimesPanel();
-		additionalInformationPanel = new AdditionalInformationPanel();
-		bottomPanel.add(timesPanel, "width 100%, height 100%");
-		bottomPanel.add(additionalInformationPanel, "width 100%, height 100%");
+		ganttChartPanel = new GanttChartPanel();
+		bottomPanel.add(ganttChartPanel, "width 100%, height 100%");
+		
+//		topPanel = new JPanel(new MigLayout("fillx, insets 0", "[grow, 20%]20[grow, 50%]", "[fill]"));
+//		topPanel.setBackground(Color.GRAY);
+//		
+//		processControlBlockPanel = new ProcessControlBlockPanel();
+//		ganttChartPanel = new GanttChartPanel();
+//		topPanel.add(processControlBlockPanel, "width 100%, height 100%");
+//		topPanel.add(ganttChartPanel, "width 100%, height 100%");
+//		
+//		bottomPanel = new JPanel(new MigLayout("fillx, insets 0", "[grow, 20%]20[grow, 50%]", "[fill]"));
+//		bottomPanel.setBackground(Color.GRAY);
+//		
+//		timesPanel = new TimesPanel();
+//		additionalInformationPanel = new AdditionalInformationPanel();
+//		bottomPanel.add(timesPanel, "width 100%, height 100%");
+//		bottomPanel.add(additionalInformationPanel, "width 100%, height 100%");
 		
 		add(topPanel, "width 100%, height 100%");
 		add(bottomPanel, "width 100%, height 100%");
