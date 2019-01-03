@@ -91,6 +91,21 @@ public class PreemptivePriorityScheduling {
 								Thread.sleep(100);
 							} catch (InterruptedException ex) { }
 							
+							if (i == ((SchedulingAlgorithmsUtilities.totalTime(1, prioProcess) + SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1)) - 1)) {
+								while (burst[j] != 0) {
+									queue.enqueue(prioProcess[j]);
+									burst[j]--;
+									flag = true;
+									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter);
+									System.out.print(prioProcess[j].getProcessID() + " ");
+									
+									counter++;
+									try {
+										Thread.sleep(100);
+									} catch (InterruptedException ex) { }
+								}
+							}
+							
 							if (burst[j] == 0) {
 								TimesPanel.turnaroundTime(counter, prioProcess[j].getArrivalTime(), prioProcess[j].getProcessID());
 								TimesPanel.waitingTime(prioProcess[j].getBurstTime(), prioProcess[j].getProcessID());

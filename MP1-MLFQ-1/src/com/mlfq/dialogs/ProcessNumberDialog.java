@@ -12,6 +12,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import com.mlfq.menu_bar.MenuBar;
 import com.mlfq.panels.ProcessControlBlockPanel;
 import com.mlfq.utilities.NumberKeyListener;
 
@@ -75,6 +76,7 @@ public class ProcessNumberDialog extends JDialog implements ActionListener
 					JOptionPane.showMessageDialog(new JFrame(), "Number must be between 1 and 20.", "ERROR", JOptionPane.ERROR_MESSAGE);
 				} else {
 					ProcessControlBlockPanel.generateRandomizedData(Integer.parseInt(textField.getText()));
+					MenuBar.setEnabledGenerateButton(false);
 					dispose();
 				}
 			}

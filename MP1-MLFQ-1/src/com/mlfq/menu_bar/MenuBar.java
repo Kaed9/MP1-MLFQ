@@ -10,6 +10,7 @@ import javax.swing.JMenuItem;
 
 import com.mlfq.dialogs.ImplementAlgorithmDialog;
 import com.mlfq.dialogs.ProcessNumberDialog;
+import com.mlfq.dialogs.TestCasesDialog;
 import com.mlfq.dialogs.UserDefinedProcessesDialog;
 import com.mlfq.panels.AdditionalInformationPanel;
 import com.mlfq.panels.GanttChartPanel;
@@ -21,7 +22,8 @@ public class MenuBar extends JMenuBar implements ActionListener
 	private static final long serialVersionUID = 1L;
 
 	private JMenuBar menuBar;
-	private JMenu app, process, run, tests, generate;
+	private JMenu app, process, run, tests;
+	private static JMenu generate;
 	private JMenuItem clear, help, exit, use;
 	private static JMenuItem implement;
 	private JMenuItem randomized, userDefined;
@@ -126,6 +128,11 @@ public class MenuBar extends JMenuBar implements ActionListener
 	{
 		implement.setEnabled(bool);
 	}
+	
+	public static void setEnabledGenerateButton(boolean bool) {
+		
+		generate.setEnabled(bool);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent event)
@@ -136,6 +143,7 @@ public class MenuBar extends JMenuBar implements ActionListener
 			AdditionalInformationPanel.clearComponents();
 			GanttChartPanel.clearComponents();
 			setEnabledImplementButton(false);
+			setEnabledGenerateButton(true);
 		} else if (event.getSource() == help) {
 			
 		} else if (event.getSource() == randomized) {
@@ -144,8 +152,11 @@ public class MenuBar extends JMenuBar implements ActionListener
 			new UserDefinedProcessesDialog();
 		} else if (event.getSource() == implement) {
 			new ImplementAlgorithmDialog();
+			setEnabledGenerateButton(false);
 		} else if (event.getSource() == use) {
-			
+			new TestCasesDialog();
+			setEnabledImplementButton(false);
+			setEnabledGenerateButton(false);
 		} else if (event.getSource() == exit) {
 			System.exit(0);
 		}

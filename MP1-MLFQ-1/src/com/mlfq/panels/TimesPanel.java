@@ -22,7 +22,7 @@ public class TimesPanel extends JPanel
 	private static final long serialVersionUID = 1L;
 	
 	private JLabel titleLabel;
-	private JTable table, averageTable;
+	private static JTable table, averageTable;
 	private JScrollPane scrollPane, averageScrollPane;
 	
 	private static DefaultTableModel tableModel, averageTableModel;
@@ -194,24 +194,27 @@ public class TimesPanel extends JPanel
 		}
 	}
 	
-	public static void responseTime(int firstExecution, int arrivalTime, int pID)
-	{
+	public static void responseTime(int firstExecution, int arrivalTime, int pID) {
+		
+		uiFix();
 		// response time = first execution - arrival time
 		responseTime[pID - 1] += (firstExecution - arrivalTime);
 		tableModel.setValueAt(responseTime[pID - 1], pID - 1, 1);
 		averageTimes(responseTime, 1);
 	}
 	
-	public static void turnaroundTime(int completionTime, int arrivalTime, int pID)
-	{
+	public static void turnaroundTime(int completionTime, int arrivalTime, int pID) {
+		
+		uiFix();
 		// turnaround time = completion - arrival time
 		turnaroundTime[pID - 1] += (completionTime - arrivalTime);
 		tableModel.setValueAt(turnaroundTime[pID - 1], pID - 1, 2);
 		averageTimes(turnaroundTime, 2);
 	}
 	
-	public static void waitingTime(int burstTime, int pID)
-	{
+	public static void waitingTime(int burstTime, int pID) {
+		
+		uiFix();
 		// waiting time = turnaround time - burst time
 		waitingTime[pID - 1] += (turnaroundTime[pID - 1] - burstTime);
 		tableModel.setValueAt(waitingTime[pID - 1], pID - 1, 3);
@@ -228,6 +231,16 @@ public class TimesPanel extends JPanel
 		average /= time.length;
 		
 		averageTableModel.setValueAt(average, 0, column);
+		
+		uiFix();
+	}
+	
+	private static void uiFix() {
+		
+		table.repaint();
+		table.revalidate();
+		averageTable.repaint();
+		averageTable.revalidate();
 	}
 	
 	private class CellRenderer extends DefaultTableCellRenderer

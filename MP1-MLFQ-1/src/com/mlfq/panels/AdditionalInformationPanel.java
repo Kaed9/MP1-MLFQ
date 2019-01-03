@@ -152,10 +152,10 @@ public class AdditionalInformationPanel extends JPanel
 		policyField.setText(" ");
 	}
 	
-	public static void setDisplayAlgoAndPolicy(String[] algorithms, String policy)
+	public static void setDisplayAlgoAndPolicy(String[] algorithms, String policy, int[] quantumTimes)
 	{
 		for(int i = 0; i < algorithms.length; i++) {
-			addRow("" + (i + 1), algorithms[i]);
+			addRow("" + (i + 1), algorithms[i] + "" + (quantumTimes[i] == 0 ? "" : ", quantum time = " + quantumTimes[i]));
 		}
 		
 		policyField.setText(policy);

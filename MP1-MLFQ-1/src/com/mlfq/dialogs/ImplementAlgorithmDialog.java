@@ -15,7 +15,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.mlfq.panels.AdditionalInformationPanel;
+import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.panels.ProcessControlBlockPanel;
+import com.mlfq.panels.TimesPanel;
 import com.mlfq.utilities.MLFQHandler;
 
 import net.miginfocom.swing.MigLayout;
@@ -55,7 +57,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		priorityLabel = new JLabel("Choose priority policy:", JLabel.CENTER);
 		priorityPolicy = new JComboBox<String>(policyArray);
 		
-		queuesLabel = new JLabel("Choose classical algorithm for each queue:", JLabel.CENTER);
+		queuesLabel = new JLabel("Choose scheduling algorithm for each queue:", JLabel.CENTER);
 		
 		queuesPanel = new JPanel(new MigLayout("fillx", "[grow, 30%][grow, 70%]"));
 		buttonsPanel = new JPanel(new MigLayout("fillx", "[grow, 50%][grow, 50%]"));
@@ -72,7 +74,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		
 		panel = new JPanel(new MigLayout("fillx", "[grow, 50%][grow, 50%]"));
 		panel.add(priorityLabel, "spanx 2, grow, align center, wrap");
-		panel.add(priorityPolicy, "spanx 2, align center, wrap");
+		panel.add(priorityPolicy, "spanx 2, align center, wrap, gapbottom 8%");
 		panel.add(queuesLabel, "grow, spanx 2, align center, wrap");
 		panel.add(queuesPanel, "grow, spanx 2, align center, wrap");
 		panel.add(submitButton, "align right");
@@ -184,10 +186,16 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 			revalidate();
 		} else if (event.getSource() == submitButton) {
 			String[] algorithms = new String[selectedAlgo.size()];
+			int[] quantumTimes = new int[quantumTime.size()];
 			for(int i = 0; i < selectedAlgo.size(); i++) {
 				algorithms[i] = selectedAlgo.get(i).getSelectedItem().toString();
+				quantumTimes[i] = Integer.parseInt(quantumTime.get(i).getText());
 			}
-			AdditionalInformationPanel.setDisplayAlgoAndPolicy(algorithms, priorityPolicy.getSelectedItem().toString());
+			
+			TimesPanel.clearComponents();
+			AdditionalInformationPanel.clearComponents();
+			GanttChartPanel.clearComponents();
+			AdditionalInformationPanel.setDisplayAlgoAndPolicy(algorithms, priorityPolicy.getSelectedItem().toString(), quantumTimes);
 			new MLFQHandler(ProcessControlBlockPanel.getTableModel(), selectedAlgo, quantumTime);
 			dispose();
 		} else if (event.getSource() == cancelButton) {
