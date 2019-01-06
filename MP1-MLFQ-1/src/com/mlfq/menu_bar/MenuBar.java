@@ -24,7 +24,7 @@ public class MenuBar extends JMenuBar implements ActionListener
 	private JMenuBar menuBar;
 	private JMenu app, process, run, tests;
 	private static JMenu generate;
-	private JMenuItem clear, help, exit, use;
+	private JMenuItem clear, /*help,*/ exit, use;
 	private static JMenuItem implement;
 	private JMenuItem randomized, userDefined;
 	
@@ -68,14 +68,14 @@ public class MenuBar extends JMenuBar implements ActionListener
 	{
 		clear = new JMenuItem("Clear All");
 		clear.setMnemonic(KeyEvent.VK_C);
-		help = new JMenuItem("Help");
-		help.setMnemonic(KeyEvent.VK_H);
+//		help = new JMenuItem("Help");
+//		help.setMnemonic(KeyEvent.VK_H);
 		exit = new JMenuItem("Exit");
 		exit.setMnemonic(KeyEvent.VK_X);
 		
 		app.add(clear);
-		app.addSeparator();
-		app.add(help);
+//		app.addSeparator();
+//		app.add(help);
 		app.addSeparator();
 		app.add(exit);
 	}
@@ -116,7 +116,7 @@ public class MenuBar extends JMenuBar implements ActionListener
 	private void addListenerToComponents()
 	{
 		clear.addActionListener(this);
-		help.addActionListener(this);
+//		help.addActionListener(this);
 		exit.addActionListener(this);
 		randomized.addActionListener(this);
 		userDefined.addActionListener(this);
@@ -144,9 +144,9 @@ public class MenuBar extends JMenuBar implements ActionListener
 			GanttChartPanel.clearComponents();
 			setEnabledImplementButton(false);
 			setEnabledGenerateButton(true);
-		} else if (event.getSource() == help) {
+		} /*else if (event.getSource() == help) {
 			
-		} else if (event.getSource() == randomized) {
+		} */else if (event.getSource() == randomized) {
 			new ProcessNumberDialog();
 		} else if (event.getSource() == userDefined) {
 			new UserDefinedProcessesDialog();
