@@ -15,7 +15,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.mlfq.panels.AdditionalInformationPanel;
+import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.panels.ProcessControlBlockPanel;
+import com.mlfq.panels.TimesPanel;
 import com.mlfq.utilities.MLFQHandler;
 
 import net.miginfocom.swing.MigLayout;
@@ -55,7 +57,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		priorityLabel = new JLabel("Choose priority policy:", JLabel.CENTER);
 		priorityPolicy = new JComboBox<String>(policyArray);
 		
-		queuesLabel = new JLabel("Choose classical algorithm for each queue:", JLabel.CENTER);
+		queuesLabel = new JLabel("Choose scheduling algorithm for each queue:", JLabel.CENTER);
 		
 		queuesPanel = new JPanel(new MigLayout("fillx", "[grow, 30%][grow, 70%]"));
 		buttonsPanel = new JPanel(new MigLayout("fillx", "[grow, 50%][grow, 50%]"));
@@ -72,7 +74,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		
 		panel = new JPanel(new MigLayout("fillx", "[grow, 50%][grow, 50%]"));
 		panel.add(priorityLabel, "spanx 2, grow, align center, wrap");
-		panel.add(priorityPolicy, "spanx 2, align center, wrap");
+		panel.add(priorityPolicy, "spanx 2, align center, wrap, gapbottom 8%");
 		panel.add(queuesLabel, "grow, spanx 2, align center, wrap");
 		panel.add(queuesPanel, "grow, spanx 2, align center, wrap");
 		panel.add(submitButton, "align right");
@@ -93,7 +95,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 	{
 		queueNumberLabel = new JLabel("Q" + (selectedAlgo.size() + 1), JLabel.CENTER);
 		algorithms = new JComboBox<String>(algorithmsArray);
-		algorithms.addItemListener(this);
+//		algorithms.addItemListener(this);
 		
 		quantumTimeLabel = new JLabel("Quantum Time", JLabel.CENTER);
 		quantumTimeLabel.setEnabled(false);
@@ -111,6 +113,10 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		
 		selectedAlgo.add(algorithms);
 		quantumTime.add(quantumTimeField);
+		
+		for(int i = 0; i < selectedAlgo.size(); i++) {
+			selectedAlgo.get(i).addItemListener(this);
+		}
 	}
 	
 	private void removeFromList()
@@ -126,30 +132,36 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		queuesPanel.add(buttonsPanel, "spanx 2, grow, align center, wrap");
 		
 		for(int i = 0; i < selectedAlgo.size(); i++) {
+			JComboBox<String> temp = selectedAlgo.get(i);
+			JTextField tempField = quantumTime.get(i);
+			
 			queueNumberLabel = new JLabel("Q" + (i + 1), JLabel.CENTER);
-			algorithms = new JComboBox<String>(algorithmsArray);
-			algorithms.addItemListener(this);
+//			algorithms = new JComboBox<String>(algorithmsArray);
+//			algorithms.addItemListener(this);
 			quantumTimeLabel = new JLabel("Quantum Time", JLabel.CENTER);
-			quantumTimeField = new JTextField();
+//			quantumTimeField = new JTextField();
 			
 			addedPanel = new JPanel(new MigLayout("fillx", "[grow, 20%][grow, 30%][grow, 20%][grow, 30%]"));
 			addedPanel.add(queueNumberLabel, "grow, align center");
-			addedPanel.add(algorithms, "grow, align center");
+//			addedPanel.add(algorithms, "grow, align center");
+			addedPanel.add(temp, "grow, align center");
 			addedPanel.add(quantumTimeLabel, "grow, align center");
-			addedPanel.add(quantumTimeField, "grow, align center");
+//			addedPanel.add(quantumTimeField, "grow, align center");
+			addedPanel.add(tempField, "grow, align center");
 			
 			queuesPanel.add(addedPanel, "spanx 2, grow, align center, wrap");
 			
-			algorithms.setSelectedIndex(selectedAlgo.get(i).getSelectedIndex());
-			quantumTimeField.setText("" + quantumTime.get(i).getText());
+//			algorithms.setSelectedIndex(selectedAlgo.get(i).getSelectedIndex());
+//			quantumTimeField.setText("" + quantumTime.get(i).getText());
 			
-			if (algorithms.getSelectedIndex() == 5) {
-				quantumTimeLabel.setEnabled(true);
-				quantumTimeField.setEnabled(true);
+			if (temp.getSelectedIndex() == 5) {
+				tempField.setEnabled(true);
 			} else {
-				quantumTimeLabel.setEnabled(false);
-				quantumTimeField.setEnabled(false);
+				tempField.setEnabled(false);
+				tempField.setText("0");
 			}
+			
+			selectedAlgo.get(i).addItemListener(this);
 		}
 		
 		queuesPanel.repaint();
@@ -184,10 +196,16 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 			revalidate();
 		} else if (event.getSource() == submitButton) {
 			String[] algorithms = new String[selectedAlgo.size()];
+			int[] quantumTimes = new int[quantumTime.size()];
 			for(int i = 0; i < selectedAlgo.size(); i++) {
 				algorithms[i] = selectedAlgo.get(i).getSelectedItem().toString();
+				quantumTimes[i] = Integer.parseInt(quantumTime.get(i).getText());
 			}
-			AdditionalInformationPanel.setDisplayAlgoAndPolicy(algorithms, priorityPolicy.getSelectedItem().toString());
+			
+			TimesPanel.clearComponents();
+			AdditionalInformationPanel.clearComponents();
+			GanttChartPanel.clearComponents();
+			AdditionalInformationPanel.setDisplayAlgoAndPolicy(algorithms, priorityPolicy.getSelectedItem().toString(), quantumTimes);
 			new MLFQHandler(ProcessControlBlockPanel.getTableModel(), selectedAlgo, quantumTime);
 			dispose();
 		} else if (event.getSource() == cancelButton) {
@@ -200,12 +218,17 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 	@Override
 	public void itemStateChanged(ItemEvent event)
 	{
-		if (algorithms.getSelectedIndex() == 5) {
-			quantumTimeLabel.setEnabled(true);
-			quantumTimeField.setEnabled(true);
-		} else {
-			quantumTimeLabel.setEnabled(false);
-			quantumTimeField.setEnabled(false);
+		for(int i = 0; i < selectedAlgo.size(); i++) {
+			JComboBox<String> temp = selectedAlgo.get(i);
+			JTextField tempField = quantumTime.get(i);
+			if (event.getSource() == temp) {
+				if (temp.getSelectedIndex() == 5) {
+					tempField.setEnabled(true);
+				} else {
+					tempField.setEnabled(false);
+					tempField.setText("0");
+				}
+			}
 		}
 	}
 }

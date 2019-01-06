@@ -4,6 +4,10 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Random;
 
 import javax.swing.BorderFactory;
@@ -139,6 +143,37 @@ public class ProcessControlBlockPanel extends JPanel
 			addRow(Integer.parseInt(table.getValueAt(i, 0).toString()), Integer.parseInt(table.getValueAt(i, 1).toString()), Integer.parseInt(table.getValueAt(i, 2).toString()), Integer.parseInt(table.getValueAt(i, 3).toString()));
 		}
 		MenuBar.setEnabledImplementButton(true);
+	}
+	
+	public static void generatePCBFromTestCase(int testCaseNumber) throws IOException {
+		
+		File file = new File("files/tests.txt");
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		
+		String string;
+		int counter = 0, indexCounter = 0;
+		int index = (testCaseNumber == 0 || testCaseNumber == 1 ? 5 : (testCaseNumber == 2 || testCaseNumber == 3 ? 10 : 15));
+		int[][] forPCB = new int[3][index];
+		while((string = reader.readLine()) != null) {
+			if (string.contains("testcase" + (testCaseNumber + 1))) {
+				for(String part : string.split("=")) {
+					if (!part.equalsIgnoreCase("testcase" + (testCaseNumber + 1))) {
+						for(String numbers : part.split(",")) {
+							forPCB[counter][indexCounter] = Integer.parseInt(numbers);
+							indexCounter++;
+						}
+						counter++;
+						indexCounter = 0;
+					}
+				}
+			}
+		}
+		
+		for (int i = 0; i < index; i++) {
+			addRow((i + 1), forPCB[0][i], forPCB[1][i], forPCB[2][i]);
+		}
+		
+		reader.close();
 	}
 	
 	public static DefaultTableModel getTableModel()

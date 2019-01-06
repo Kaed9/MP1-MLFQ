@@ -53,12 +53,12 @@ public class RoundRobin {
 					int currentBurst = usable.getBurstTime();
 					int currentArrival = usable.getArrivalTime();
 					
-					if (!responseTimeDone[usable.getProcessID() - 1]) {
-						TimesPanel.responseTime(counter, usable.getArrivalTime(), usable.getProcessID());
-						responseTimeDone[usable.getProcessID() - 1] = true;
-					}
-					
 					if (usable.getArrivalTime() <= quantumTimeLoop) {
+						if (!responseTimeDone[usable.getProcessID() - 1]) {
+							TimesPanel.responseTime(counter, usable.getArrivalTime(), usable.getProcessID());
+							responseTimeDone[usable.getProcessID() - 1] = true;
+						}
+						
 						if (currentBurst > quantumTime) {
 							usable.setBurstTime(currentBurst - quantumTime);
 							usable.setArrivalTime(currentArrival + quantumTime);

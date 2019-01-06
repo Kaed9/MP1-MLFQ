@@ -24,6 +24,8 @@ public class MLFQHandler
 	private ArrayList<JComboBox<String>> selectedAlgo;
 	private ArrayList<JTextField> quantumTime;
 	
+	private int selectedAlgoTest, quantumTimeTest;
+	
 	private Process[] process;
 	
 	private Random random;
@@ -38,6 +40,16 @@ public class MLFQHandler
 		makeNewProcesses();
 		colorRandomizer();
 		implementAlgorithm();
+	}
+	
+	public MLFQHandler(DefaultTableModel tableModel, int selectedAlgoTest, int quantumTimeTest)
+	{
+		this.tableModel = tableModel;
+		this.selectedAlgoTest = selectedAlgoTest;
+		this.quantumTimeTest = quantumTimeTest;
+		makeNewProcesses();
+		colorRandomizer();
+		implementAlgorithmForTestCase();
 	}
 	
 	private void makeNewProcesses()
@@ -97,4 +109,46 @@ public class MLFQHandler
 			}
 		}
 	}
+	
+	private void implementAlgorithmForTestCase() {
+		
+		TimesPanel.initializeTimes(tableModel.getRowCount());
+		
+		switch(selectedAlgoTest) {
+			case 0:
+				new FirstComeFirstServe(process);
+				break;
+			case 1:
+				new ShortestJobFirst(process);
+				break;
+			case 2:
+				new ShortestRemainingTimeFirst(process);
+				break;
+			case 3:
+				new PreemptivePriorityScheduling(process);
+				break;
+			case 4:
+				new NonPreemptivePriorityScheduling(process);
+				break;
+			case 5:
+				new RoundRobin(process, quantumTimeTest);
+				break;
+			default:
+				break;
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

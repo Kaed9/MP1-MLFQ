@@ -35,6 +35,8 @@ public class NonPreemptivePriorityScheduling {
 				}
 				
 				for(int i = 0; i < nPrioProcess.length; i++) {
+					int currentArrival = 0, currentBurst = 0, currentID = 0;
+					
 					if (i == 0) {
 						for(int j = 0; j < nPrioProcess[i].getBurstTime(); j++) {
 							if (j == 0) {
@@ -58,11 +60,25 @@ public class NonPreemptivePriorityScheduling {
 					} else {
 						boolean flag = false;
 						for(int j = 0; j < nPrioProcess.length; j++) {
-							if (nPrioProcess[j].getPriority() == SchedulingAlgorithmsUtilities.getSmallestNum(prio, 1) && prio[j] != -1 && flag == false) {						
+							if (nPrioProcess[j].getPriority() == SchedulingAlgorithmsUtilities.getSmallestNum(prio, 1) && prio[j] != -1 && flag == false) {
+								if (counter < nPrioProcess[j].getArrivalTime()) {
+									for(int k = counter; k < nPrioProcess[j].getArrivalTime(); k++) {
+										GanttChartPanel.addToGanttChart(0, counter);
+										counter++;
+										try {
+											Thread.sleep(100);
+										} catch (InterruptedException ex) { }
+									}
+								}
+								
 								for(int k = 0; k < nPrioProcess[j].getBurstTime(); k++) {
 									if (k == 0) {
 										TimesPanel.responseTime(counter, nPrioProcess[j].getArrivalTime(), nPrioProcess[j].getProcessID());
 									}
+									
+									currentArrival = nPrioProcess[j].getArrivalTime();
+									currentBurst = nPrioProcess[j].getBurstTime();
+									currentID = nPrioProcess[j].getProcessID();
 									
 									queue.enqueue(nPrioProcess[j]);
 									GanttChartPanel.addToGanttChart(nPrioProcess[j].getProcessID(), counter);
@@ -80,8 +96,13 @@ public class NonPreemptivePriorityScheduling {
 						}
 					}
 					
-					TimesPanel.turnaroundTime(counter, nPrioProcess[i].getArrivalTime(), nPrioProcess[i].getProcessID());
-					TimesPanel.waitingTime(nPrioProcess[i].getBurstTime(), nPrioProcess[i].getProcessID());
+					if (currentArrival == 0 && currentID == 0 && currentBurst == 0) {
+						TimesPanel.turnaroundTime(counter, nPrioProcess[i].getArrivalTime(), nPrioProcess[i].getProcessID());
+						TimesPanel.waitingTime(nPrioProcess[i].getBurstTime(), nPrioProcess[i].getProcessID());
+					} else {
+						TimesPanel.turnaroundTime(counter, currentArrival, currentID);
+						TimesPanel.waitingTime(currentBurst, currentID);
+					}
 				}
 			}
 		}.start();

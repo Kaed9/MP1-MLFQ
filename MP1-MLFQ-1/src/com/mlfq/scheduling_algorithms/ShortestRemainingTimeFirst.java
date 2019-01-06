@@ -51,11 +51,28 @@ public class ShortestRemainingTimeFirst
 					}
 					
 					for(int j = 0; j < srtfProcess.length; j++) {
-						if (isAvailable[j] = true && SchedulingAlgorithmsUtilities.getSmallestNum(tempB,0) != -1 && burst[j] == SchedulingAlgorithmsUtilities.getSmallestNum(tempB,0) && flag == false) {
+						int currentArrival = 0, currentBurst = 0, currentID = 0;
+						
+						if (isAvailable[j] = true && SchedulingAlgorithmsUtilities.getSmallestNum(tempB, 0) != -1 && burst[j] == SchedulingAlgorithmsUtilities.getSmallestNum(tempB, 0) && flag == false) {
+							if (counter < srtfProcess[j].getArrivalTime()) {
+								for(int k = counter; k < srtfProcess[j].getArrivalTime(); k++) {
+									GanttChartPanel.addToGanttChart(0, counter);
+									counter++;
+									try {
+										Thread.sleep(100);
+									} catch (InterruptedException ex) { }
+								}
+							}
+							
+							currentArrival = srtfProcess[j].getArrivalTime();
+							currentBurst = srtfProcess[j].getBurstTime();
+							currentID = srtfProcess[j].getProcessID();
+							
 							if (!responseTimeDone[j]) {
 								TimesPanel.responseTime(counter, srtfProcess[j].getArrivalTime(), srtfProcess[j].getProcessID());
 								responseTimeDone[j] = true;
 							}
+							
 							if (i == SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1)) {
 								queue.initialProcess(srtfProcess[j]);
 								burst[j]--;
@@ -78,9 +95,30 @@ public class ShortestRemainingTimeFirst
 							Thread.sleep(100);
 						} catch (InterruptedException ex) { }
 						
+						if (i == ((SchedulingAlgorithmsUtilities.totalTime(1, srtfProcess) + SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1)) - 1)) {
+							while (burst[j] != 0) {
+								queue.enqueue(srtfProcess[j]);
+								burst[j]--;
+								tempB[j]--;
+								flag = true;
+								GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), counter);
+								System.out.print(srtfProcess[j].getProcessID() + " ");
+								
+								counter++;
+								try {
+									Thread.sleep(100);
+								} catch (InterruptedException ex) { }
+							}
+						}
+						
 						if (burst[j] == 0) {
-							TimesPanel.turnaroundTime(counter, srtfProcess[j].getArrivalTime(), srtfProcess[j].getProcessID());
-							TimesPanel.waitingTime(srtfProcess[j].getBurstTime(), srtfProcess[j].getProcessID());
+							if (currentArrival == 0 && currentBurst == 0 && currentID == 0) {
+								TimesPanel.turnaroundTime(counter, srtfProcess[j].getArrivalTime(), srtfProcess[j].getProcessID());
+								TimesPanel.waitingTime(srtfProcess[j].getBurstTime(), srtfProcess[j].getProcessID());
+							} else {
+								TimesPanel.turnaroundTime(counter, currentArrival, currentID);
+								TimesPanel.waitingTime(currentBurst, currentID);
+							}
 						}
 					}
 				}

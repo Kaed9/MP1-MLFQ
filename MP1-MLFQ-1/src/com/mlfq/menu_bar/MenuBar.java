@@ -10,6 +10,7 @@ import javax.swing.JMenuItem;
 
 import com.mlfq.dialogs.ImplementAlgorithmDialog;
 import com.mlfq.dialogs.ProcessNumberDialog;
+import com.mlfq.dialogs.TestCasesDialog;
 import com.mlfq.dialogs.UserDefinedProcessesDialog;
 import com.mlfq.panels.AdditionalInformationPanel;
 import com.mlfq.panels.GanttChartPanel;
@@ -21,8 +22,9 @@ public class MenuBar extends JMenuBar implements ActionListener
 	private static final long serialVersionUID = 1L;
 
 	private JMenuBar menuBar;
-	private JMenu app, process, run, tests, generate;
-	private JMenuItem clear, help, exit, use;
+	private JMenu app, process, run, tests;
+	private static JMenu generate;
+	private JMenuItem clear, /*help,*/ exit, use;
 	private static JMenuItem implement;
 	private JMenuItem randomized, userDefined;
 	
@@ -66,14 +68,14 @@ public class MenuBar extends JMenuBar implements ActionListener
 	{
 		clear = new JMenuItem("Clear All");
 		clear.setMnemonic(KeyEvent.VK_C);
-		help = new JMenuItem("Help");
-		help.setMnemonic(KeyEvent.VK_H);
+//		help = new JMenuItem("Help");
+//		help.setMnemonic(KeyEvent.VK_H);
 		exit = new JMenuItem("Exit");
 		exit.setMnemonic(KeyEvent.VK_X);
 		
 		app.add(clear);
-		app.addSeparator();
-		app.add(help);
+//		app.addSeparator();
+//		app.add(help);
 		app.addSeparator();
 		app.add(exit);
 	}
@@ -114,7 +116,7 @@ public class MenuBar extends JMenuBar implements ActionListener
 	private void addListenerToComponents()
 	{
 		clear.addActionListener(this);
-		help.addActionListener(this);
+//		help.addActionListener(this);
 		exit.addActionListener(this);
 		randomized.addActionListener(this);
 		userDefined.addActionListener(this);
@@ -126,6 +128,11 @@ public class MenuBar extends JMenuBar implements ActionListener
 	{
 		implement.setEnabled(bool);
 	}
+	
+	public static void setEnabledGenerateButton(boolean bool) {
+		
+		generate.setEnabled(bool);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent event)
@@ -136,16 +143,20 @@ public class MenuBar extends JMenuBar implements ActionListener
 			AdditionalInformationPanel.clearComponents();
 			GanttChartPanel.clearComponents();
 			setEnabledImplementButton(false);
-		} else if (event.getSource() == help) {
+			setEnabledGenerateButton(true);
+		} /*else if (event.getSource() == help) {
 			
-		} else if (event.getSource() == randomized) {
+		} */else if (event.getSource() == randomized) {
 			new ProcessNumberDialog();
 		} else if (event.getSource() == userDefined) {
 			new UserDefinedProcessesDialog();
 		} else if (event.getSource() == implement) {
 			new ImplementAlgorithmDialog();
+			setEnabledGenerateButton(false);
 		} else if (event.getSource() == use) {
-			
+			new TestCasesDialog();
+			setEnabledImplementButton(false);
+			setEnabledGenerateButton(false);
 		} else if (event.getSource() == exit) {
 			System.exit(0);
 		}

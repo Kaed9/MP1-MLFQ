@@ -20,6 +20,7 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import com.mlfq.menu_bar.MenuBar;
 import com.mlfq.panels.ProcessControlBlockPanel;
 
 import net.miginfocom.swing.MigLayout;
@@ -183,6 +184,7 @@ public class UserDefinedProcessesDialog extends JDialog implements ActionListene
 		
 		if (counter == 0) {
 			ProcessControlBlockPanel.getUserDefinedTable(table);
+			MenuBar.setEnabledGenerateButton(false);
 			dispose();
 		}
 	}
