@@ -26,7 +26,7 @@ public class NonPreemptivePriorityScheduling {
 				
 				if (counter < nPrioProcess[0].getArrivalTime()) {
 					for(int k = 0; k < nPrioProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter);
+						GanttChartPanel.addToGanttChart(0, counter, 1);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -42,11 +42,11 @@ public class NonPreemptivePriorityScheduling {
 							if (j == 0) {
 								queue.initialProcess(nPrioProcess[i]);
 								TimesPanel.responseTime(counter, nPrioProcess[i].getArrivalTime(), nPrioProcess[i].getProcessID());
-								GanttChartPanel.addToGanttChart(nPrioProcess[i].getProcessID(), counter);
+								GanttChartPanel.addToGanttChart(nPrioProcess[i].getProcessID(), counter, 1);
 								System.out.print(nPrioProcess[i].getProcessID() + " ");
 							} else {
 								queue.enqueue(nPrioProcess[i]);
-								GanttChartPanel.addToGanttChart(nPrioProcess[i].getProcessID(), counter);
+								GanttChartPanel.addToGanttChart(nPrioProcess[i].getProcessID(), counter, 1);
 								System.out.print(nPrioProcess[i].getProcessID() + " ");
 							}
 							
@@ -63,7 +63,7 @@ public class NonPreemptivePriorityScheduling {
 							if (nPrioProcess[j].getPriority() == SchedulingAlgorithmsUtilities.getSmallestNum(prio, 1) && prio[j] != -1 && flag == false) {
 								if (counter < nPrioProcess[j].getArrivalTime()) {
 									for(int k = counter; k < nPrioProcess[j].getArrivalTime(); k++) {
-										GanttChartPanel.addToGanttChart(0, counter);
+										GanttChartPanel.addToGanttChart(0, counter, 1);
 										counter++;
 										try {
 											Thread.sleep(100);
@@ -81,7 +81,7 @@ public class NonPreemptivePriorityScheduling {
 									currentID = nPrioProcess[j].getProcessID();
 									
 									queue.enqueue(nPrioProcess[j]);
-									GanttChartPanel.addToGanttChart(nPrioProcess[j].getProcessID(), counter);
+									GanttChartPanel.addToGanttChart(nPrioProcess[j].getProcessID(), counter, 1);
 									System.out.print(nPrioProcess[j].getProcessID() + " ");
 									
 									counter++;

@@ -21,7 +21,7 @@ public class FirstComeFirstServe
 				
 				if (counter < fcfsProcess[0].getArrivalTime()) {
 					for(int k = 0; k < fcfsProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter);
+						GanttChartPanel.addToGanttChart(0, counter, 1);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -32,7 +32,7 @@ public class FirstComeFirstServe
 				for(int i = 0; i < fcfsProcess.length; i++) {
 					if (counter < fcfsProcess[i].getArrivalTime()) {
 						for(int k = counter; k < fcfsProcess[i].getArrivalTime(); k++) {
-							GanttChartPanel.addToGanttChart(0, counter);
+							GanttChartPanel.addToGanttChart(0, counter, 1);
 							counter++;
 							try {
 								Thread.sleep(100);
@@ -48,11 +48,11 @@ public class FirstComeFirstServe
 						if (i == 0 && j == 0) {
 							queue.initialProcess(fcfsProcess[i]);
 							System.out.print(fcfsProcess[i].getProcessID() + " ");
-							GanttChartPanel.addToGanttChart(fcfsProcess[i].getProcessID(), counter);
+							GanttChartPanel.addToGanttChart(fcfsProcess[i].getProcessID(), counter, 1);
 						} else {
 							queue.enqueue(fcfsProcess[i]);
 							System.out.print(fcfsProcess[i].getProcessID() + " ");
-							GanttChartPanel.addToGanttChart(fcfsProcess[i].getProcessID(), counter);
+							GanttChartPanel.addToGanttChart(fcfsProcess[i].getProcessID(), counter, 1);
 						}
 						counter++;
 						try {

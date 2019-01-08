@@ -17,14 +17,16 @@ public class GanttChartPanel extends JPanel
 {
 	private static final long serialVersionUID = 1L;
 	
+	private static int queueCount;
+	
 	private JLabel titleLabel;
-	private static JPanel panel;
+	private static JPanel panel, queuePanel;
 	private static JScrollPane scrollPane;
 
 	public GanttChartPanel()
 	{
 		setBackground(Color.WHITE);
-		setLayout(new MigLayout("fillx, insets 20, wrap 1"));
+		setLayout(new MigLayout("fillx, insets 20", "[grow, 5%]0[grow, 95%]", "[grow]"));
 		setBorder(BorderFactory.createLineBorder(Color.YELLOW, 3));
 		addComponents();
 	}
@@ -41,23 +43,65 @@ public class GanttChartPanel extends JPanel
 		panel = new JPanel(new MigLayout("insets 0", "[]0[]"));
 		scrollPane = new JScrollPane(panel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		
-		add(titleLabel, "grow, align center, gapbottom 3%");
-		add(scrollPane, "grow, align center, height 100%");
+		queuePanel = new JPanel(new MigLayout("fillx, insets 0, wrap 1", "[grow]", "[]0[]0[]"));
+		queuePanel.setBackground(Color.WHITE);
+		
+		add(titleLabel, "grow, spanx 2, align center, gapbottom 3%, wrap");
+		add(queuePanel, "width 100%, height 100%");
+		add(scrollPane, "width 100%, height 100%");
 	}
 	
-	public static void addToGanttChart(int pID, int counter)
+	public static void addToQueuePanel(int queueCount1) {
+		
+		queueCount = queueCount1;
+		
+		for (int i = 0; i < queueCount; i++) {
+			JLabel label = new JLabel("Q" + (i + 1));
+			label.setPreferredSize(new Dimension(15, 32));
+//			label.setBackground(Color.WHITE);
+			label.setFont(new Font("Verdana", Font.BOLD, 15));
+			
+//			JPanel panel1 = new JPanel(new MigLayout("insets 0"));
+//			panel.setPreferredSize(new Dimension(60, 25));
+//			panel1.setBackground(Color.WHITE);
+//			panel1.add(label);
+			queuePanel.add(label);
+			queuePanel.repaint();
+			queuePanel.revalidate();
+		}
+	}
+	
+	public static void addToGanttChart(int pID, int counter, int queueNumber)
 	{
-		JLabel label = new JLabel((pID == 0 ? " " : "P" + pID), JLabel.CENTER);
-		label.setPreferredSize(new Dimension(60, 70));
-		label.setOpaque(true);
-		label.setBackground(MLFQHandler.getColorByProcessId(pID));
-		label.setFont(new Font("Verdana", Font.PLAIN, 20));
-		label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-		JLabel counterLabel = new JLabel("" + (counter + 1), JLabel.RIGHT);
-		counterLabel.setFont(new Font("Verdana", Font.PLAIN, 16));
-		JPanel labelPanel = new JPanel(new MigLayout("insets 0, wrap 1"));
-		labelPanel.add(label);
-		labelPanel.add(counterLabel, "align right");
+		JLabel label = null, counterLabel = null;
+		JPanel labelPanel = new JPanel(new MigLayout("insets 0, wrap 1", "[]0[]", "[]0[]"));
+		
+		for (int i = 0; i < queueCount; i++) {
+			if (i == (queueNumber - 1)) {
+				label = new JLabel((pID == 0 ? " " : "P" + pID), JLabel.CENTER);
+				label.setPreferredSize(new Dimension(60, 32));
+				label.setOpaque(true);
+				label.setBackground(MLFQHandler.getColorByProcessId(pID));
+				label.setFont(new Font("Verdana", Font.BOLD, 15));
+				label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+				labelPanel.add(label);
+			} else {
+				label = new JLabel(" ", JLabel.CENTER);
+				label.setPreferredSize(new Dimension(60, 32));
+				label.setOpaque(true);
+				label.setBackground(new Color(255, 255, 255));
+				label.setFont(new Font("Verdana", Font.BOLD, 15));
+//				label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+				labelPanel.add(label);
+			}
+			
+			if (i == queueCount - 1) {
+				counterLabel = new JLabel("" + (counter + 1), JLabel.RIGHT);
+				counterLabel.setFont(new Font("Verdana", Font.PLAIN, 13));
+				labelPanel.add(counterLabel, "align right");
+			}
+		}
+		
 		panel.add(labelPanel);
 		scrollPane.getHorizontalScrollBar().setValue(scrollPane.getHorizontalScrollBar().getMaximum());
 		scrollPane.repaint();
@@ -69,5 +113,8 @@ public class GanttChartPanel extends JPanel
 		panel.removeAll();
 		panel.repaint();
 		panel.revalidate();
+		queuePanel.removeAll();
+		queuePanel.repaint();
+		queuePanel.revalidate();
 	}
 }

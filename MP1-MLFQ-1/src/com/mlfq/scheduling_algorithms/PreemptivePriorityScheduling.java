@@ -17,7 +17,7 @@ public class PreemptivePriorityScheduling {
 				
 				boolean[] isAvailable = new boolean[prioProcess.length], responseTimeDone = new boolean[prioProcess.length];
 				int[] burst = new int[prioProcess.length], tempB = new int[prioProcess.length], prio = new int[prioProcess.length], arrival = new int[prioProcess.length];
-			
+				
 				for(int i = 0; i < prioProcess.length; i++){
 					isAvailable[i] = false;
 					responseTimeDone[i] = false;
@@ -32,7 +32,7 @@ public class PreemptivePriorityScheduling {
 				
 				if(counter < prioProcess[0].getArrivalTime()) {
 					for(int k = 0; k < prioProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter);
+						GanttChartPanel.addToGanttChart(0, counter, 1);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -48,7 +48,6 @@ public class PreemptivePriorityScheduling {
 							isAvailable[j] = true;
 							tempB[j] = burst[j];
 							prio[j] = prioProcess[j].getPriority();
-							
 						} else { continue; }
 					}
 					
@@ -71,7 +70,7 @@ public class PreemptivePriorityScheduling {
 									queue.initialProcess(prioProcess[j]);
 									burst[j]--;
 									flag = true;
-									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter);
+									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 1);
 									System.out.print(prioProcess[j].getProcessID() + " ");
 									
 									if(burst[j] == 0) { prio[j] = -1; }
@@ -79,7 +78,7 @@ public class PreemptivePriorityScheduling {
 									queue.enqueue(prioProcess[j]);
 									burst[j]--;
 									flag = true;
-									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter);
+									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 1);
 									System.out.print(prioProcess[j].getProcessID() + " ");
 									
 									if(burst[j] == 0) { prio[j] = -1; }
@@ -96,7 +95,7 @@ public class PreemptivePriorityScheduling {
 									queue.enqueue(prioProcess[j]);
 									burst[j]--;
 									flag = true;
-									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter);
+									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 1);
 									System.out.print(prioProcess[j].getProcessID() + " ");
 									
 									counter++;
@@ -117,7 +116,7 @@ public class PreemptivePriorityScheduling {
 								queue.enqueue(prioProcess[j]);
 								burst[j]--;
 								flag = true;
-								GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter);
+								GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 1);
 								System.out.print(prioProcess[j].getProcessID() + " ");
 								
 								if(burst[j] == 0) { prio[j] = -1; }

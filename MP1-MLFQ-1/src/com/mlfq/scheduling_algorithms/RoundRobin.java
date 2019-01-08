@@ -10,28 +10,28 @@ public class RoundRobin {
 	
 	public RoundRobin(Process[] process, int quantumTime) {
 		
+		int[] originalBursts = new int[process.length];
+		for (int i = 0; i < process.length; i++) {
+			originalBursts[i] = process[i].getBurstTime();
+		}
+		
 		Process[] roundRobinProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
 		
 		new Thread() {
 			public void run() {
 				
-				Process usable = null, temp1[] = roundRobinProcess;
-				Queue queue1 = new Queue(), queue2 = new Queue();
-				int tempLength = roundRobinProcess.length;
+				Process usable = null;
+				Queue queue1 = new Queue();
 				int counter = 0;
-				int[] bursts = new int[tempLength], arrivals = new int[tempLength];
-				boolean[] responseTimeDone = new boolean[tempLength];
-				boolean isDone = false;
+				int[] arrivals = new int[roundRobinProcess.length];
 				
-				for(int i = 0; i < tempLength; i++) {
-					bursts[roundRobinProcess[i].getProcessID() - 1] = roundRobinProcess[i].getBurstTime();
+				for(int i = 0; i < roundRobinProcess.length; i++) {
 					arrivals[roundRobinProcess[i].getProcessID() - 1] = roundRobinProcess[i].getArrivalTime();
-					responseTimeDone[i] = false;
 				}
 				
 				if (counter < roundRobinProcess[0].getArrivalTime()) {
 					for(int k = 0; k < roundRobinProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter);
+						GanttChartPanel.addToGanttChart(0, counter, 1);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -39,96 +39,82 @@ public class RoundRobin {
 					}
 				}
 				
-				queue2.initialProcess(roundRobinProcess[0]);
-				for(int i = 1; i < roundRobinProcess.length; i++) {
-					queue2.enqueue(roundRobinProcess[i]);
-				}
+				int countTempLength = 0;
 				
-				int countTempLength = tempLength;
-				int quantumTimeLoop = roundRobinProcess[0].getArrivalTime();
+				queue1.initialProcess(roundRobinProcess[0]);
 				
-				while (true) {
-					usable = queue2.dequeue();
-					
-					int currentBurst = usable.getBurstTime();
-					int currentArrival = usable.getArrivalTime();
-					
-					if (usable.getArrivalTime() <= quantumTimeLoop) {
-						if (!responseTimeDone[usable.getProcessID() - 1]) {
-							TimesPanel.responseTime(counter, usable.getArrivalTime(), usable.getProcessID());
-							responseTimeDone[usable.getProcessID() - 1] = true;
+				try {
+					while (true) {
+						if(countTempLength == roundRobinProcess.length) {
+							break;
 						}
 						
-						if (currentBurst > quantumTime) {
-							usable.setBurstTime(currentBurst - quantumTime);
-							usable.setArrivalTime(currentArrival + quantumTime);
-							quantumTimeLoop += quantumTime;
-
-							for(int j = 0; j < quantumTime; j++) {
-								for(int i = 0; i < tempLength; i++) {
-									if (queue1.getIndex() == 0) {
-										if(temp1[i].getProcessID() == usable.getProcessID()) {									
-											queue1.initialProcess(temp1[i]);
-											GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
-											System.out.print(temp1[i].getProcessID() + " ");
-										}
-									} else {
-										if (temp1[i].getProcessID() == usable.getProcessID()) {
-											queue1.enqueue(temp1[i]);
-											GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
-											System.out.print(temp1[i].getProcessID() + " ");
-										}
+						if (queue1.getIndex() == 0) {
+							int nextArrival = 0;
+							for (int i = 0; i < arrivals.length; i++) {
+								if (arrivals[i] > counter) {
+									if (nextArrival == 0) {
+										nextArrival = arrivals[i];
+									}
+									
+									if (nextArrival > arrivals[i]) {
+										nextArrival = arrivals[i];
 									}
 								}
-								
+							}
+							
+							for (int i = counter; i < nextArrival; i++) {
+								GanttChartPanel.addToGanttChart(0, counter, 1);
 								counter++;
 								try {
 									Thread.sleep(100);
 								} catch (InterruptedException ex) { }
 							}
-						} else if(currentBurst <= quantumTime && currentBurst != 0) {
-							usable.setBurstTime(currentBurst - currentBurst);
-							countTempLength--;
-							quantumTimeLoop += currentBurst;
-							isDone = true;
-
-							for(int j = 0; j < currentBurst; j++) {
-								for(int i = 0; i < tempLength; i++) {
-									if(queue1.getIndex() == 0) {
-										if (temp1[i].getProcessID() == usable.getProcessID()) {
-											queue1.initialProcess(temp1[i]);
-											GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
-											System.out.print(temp1[i].getProcessID() + " ");
-										}
-									} else {
-										if (temp1[i].getProcessID() == usable.getProcessID()) {
-											queue1.enqueue(temp1[i]);
-											GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
-											System.out.print(temp1[i].getProcessID() + " ");
-										}
-									}
+							System.out.println(counter + " " + nextArrival);
+							for (int j = 0; j < roundRobinProcess.length; j++) {
+								if (counter == roundRobinProcess[j].getArrivalTime()) {
+									queue1.initialProcess(roundRobinProcess[j]);
 								}
-								
-								counter++;
-								try {
-									Thread.sleep(100);
-								} catch (InterruptedException ex) { }
 							}
 						}
+						
+						usable = queue1.dequeue();
+						
+						if (usable.getBurstTime() == originalBursts[usable.getProcessID() - 1]) {
+							TimesPanel.responseTime(counter, usable.getArrivalTime(), usable.getProcessID());
+						}
+						
+						for (int i = 0; i < quantumTime; i++) {
+							if (usable.getBurstTime() == 0) {
+								countTempLength++;
+								break;
+							}
+							
+							GanttChartPanel.addToGanttChart(usable.getProcessID(), counter, 1);
+							System.out.print(usable.getProcessID() + " ");
+							usable.setBurstTime(usable.getBurstTime() - 1);
+							
+							counter++;
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException ex) { }
+							
+							for (int j = 0; j < roundRobinProcess.length; j++) {
+								if (counter == roundRobinProcess[j].getArrivalTime()) {
+									queue1.enqueue(roundRobinProcess[j]);
+								}
+							}
+						}
+						System.out.println();
+						
+						if (usable.getBurstTime() != 0) {
+							queue1.enqueue(usable);
+						} else if (usable.getBurstTime() == 0) {
+							TimesPanel.turnaroundTime(counter, arrivals[usable.getProcessID() - 1], usable.getProcessID());
+							TimesPanel.waitingTime(originalBursts[usable.getProcessID() - 1], usable.getProcessID());
+						}
 					}
-					
-					if (isDone) {
-						TimesPanel.turnaroundTime(counter, arrivals[usable.getProcessID() - 1], usable.getProcessID());
-						TimesPanel.waitingTime(bursts[usable.getProcessID() - 1], usable.getProcessID());
-						isDone = false;
-					}
-					
-					queue2.enqueue(usable);
-
-					if(countTempLength == 0) {
-						break;
-					}
-				}
+				} catch (NullPointerException ex) { }
 			}
 		}.start();
 	}

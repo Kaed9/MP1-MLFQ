@@ -29,7 +29,7 @@ public class ShortestJobFirst
 				
 				if (counter < sjfProcess[0].getArrivalTime()) {
 					for(int k = 0; k < sjfProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter);
+						GanttChartPanel.addToGanttChart(0, counter, 1);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -43,11 +43,11 @@ public class ShortestJobFirst
 							if (j == 0) {
 								TimesPanel.responseTime(counter, sjfProcess[i].getArrivalTime(), sjfProcess[i].getProcessID());
 								queue.initialProcess(sjfProcess[i]);
-								GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), counter);
+								GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), counter, 1);
 								System.out.print(sjfProcess[i].getProcessID() + " ");
 							} else {
 								queue.enqueue(sjfProcess[i]);
-								GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), counter);
+								GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), counter, 1);
 								System.out.print(sjfProcess[i].getProcessID() + " ");
 							}
 							counter++;
@@ -62,7 +62,7 @@ public class ShortestJobFirst
 						burst[i] = -1;
 					} else {
 						for(int j = 1; j < sjfProcess.length; j++) {
-							if (burst[j] != -1) {
+							if (burst[j] != -1 && counter > sjfProcess[j].getArrivalTime()) {
 								isAvailable[j] = true;
 								burst[j] = sjfProcess[j].getBurstTime();
 							}
@@ -72,7 +72,7 @@ public class ShortestJobFirst
 						for(int j = 0; j < sjfProcess.length; j++) {
 							if (counter < sjfProcess[j].getArrivalTime()) {
 								for(int k = counter; k < sjfProcess[j].getArrivalTime(); k++) {
-									GanttChartPanel.addToGanttChart(0, counter);
+									GanttChartPanel.addToGanttChart(0, counter, 1);
 									counter++;
 									try {
 										Thread.sleep(100);
@@ -87,7 +87,7 @@ public class ShortestJobFirst
 									}
 									
 									queue.enqueue(sjfProcess[j]);
-									GanttChartPanel.addToGanttChart(sjfProcess[j].getProcessID(), counter);
+									GanttChartPanel.addToGanttChart(sjfProcess[j].getProcessID(), counter, 1);
 									System.out.print(sjfProcess[j].getProcessID() + " ");
 									
 									counter++;

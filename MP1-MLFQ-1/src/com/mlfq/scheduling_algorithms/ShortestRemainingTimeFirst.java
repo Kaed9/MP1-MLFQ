@@ -32,7 +32,7 @@ public class ShortestRemainingTimeFirst
 				
 				if (counter < srtfProcess[0].getArrivalTime()) {
 					for(int k = 0; k < srtfProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter);
+						GanttChartPanel.addToGanttChart(0, counter, 1);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -56,7 +56,7 @@ public class ShortestRemainingTimeFirst
 						if (isAvailable[j] = true && SchedulingAlgorithmsUtilities.getSmallestNum(tempB, 0) != -1 && burst[j] == SchedulingAlgorithmsUtilities.getSmallestNum(tempB, 0) && flag == false) {
 							if (counter < srtfProcess[j].getArrivalTime()) {
 								for(int k = counter; k < srtfProcess[j].getArrivalTime(); k++) {
-									GanttChartPanel.addToGanttChart(0, counter);
+									GanttChartPanel.addToGanttChart(0, counter, 1);
 									counter++;
 									try {
 										Thread.sleep(100);
@@ -78,14 +78,14 @@ public class ShortestRemainingTimeFirst
 								burst[j]--;
 								tempB[j]--;
 								flag = true;
-								GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), counter);
+								GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), counter, 1);
 								System.out.print(srtfProcess[j].getProcessID() + " ");
 							} else {
 								queue.enqueue(srtfProcess[j]);
 								burst[j]--;
 								tempB[j]--;
 								flag = true;
-								GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), counter);
+								GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), counter, 1);
 								System.out.print(srtfProcess[j].getProcessID() + " ");
 							}
 						} else { continue; }
@@ -101,7 +101,7 @@ public class ShortestRemainingTimeFirst
 								burst[j]--;
 								tempB[j]--;
 								flag = true;
-								GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), counter);
+								GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), counter, 1);
 								System.out.print(srtfProcess[j].getProcessID() + " ");
 								
 								counter++;

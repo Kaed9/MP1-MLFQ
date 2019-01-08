@@ -9,8 +9,10 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import com.mlfq.data_structures.Process;
+import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.panels.TimesPanel;
 import com.mlfq.scheduling_algorithms.FirstComeFirstServe;
+import com.mlfq.scheduling_algorithms.MLFQ;
 import com.mlfq.scheduling_algorithms.NonPreemptivePriorityScheduling;
 import com.mlfq.scheduling_algorithms.PreemptivePriorityScheduling;
 import com.mlfq.scheduling_algorithms.RoundRobin;
@@ -39,7 +41,13 @@ public class MLFQHandler
 		this.quantumTime = quantumTime;
 		makeNewProcesses();
 		colorRandomizer();
-		implementAlgorithm();
+		GanttChartPanel.addToQueuePanel(selectedAlgo.size());
+		
+		if (selectedAlgo.size() == 1) {
+			implementAlgorithm();
+		} else {
+			new MLFQ(process, true, selectedAlgo, quantumTime);
+		}
 	}
 	
 	public MLFQHandler(DefaultTableModel tableModel, int selectedAlgoTest, int quantumTimeTest)
@@ -138,17 +146,3 @@ public class MLFQHandler
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
