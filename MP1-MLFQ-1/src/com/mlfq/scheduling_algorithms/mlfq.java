@@ -5,11 +5,12 @@ import com.mlfq.data_structures.Queue;
 import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.panels.TimesPanel;
 import com.mlfq.utilities.SchedulingAlgorithmsUtilities;
+import com.mlfq.scheduling_algorithms.RoundRobin;
 
 public class mlfq{
 	Process[] mainProcess;
 	boolean priority = true; //
-	int[] queue;
+	int queue[], totalConsumedTime, algorithm[];
 	//note: algorithm: {1:RR, 2:FCFS, 3:SJF, 4:SRTF, 5:Prio, 6:NPrio}
 	public mlfq() {}
 	
@@ -17,20 +18,33 @@ public class mlfq{
 		this.mainProcess = process;
 		this.priority = priority;
 		this.queue = new int[process.length];
+		this.algorithm = algorithm;
 		Process[] temp = process;		//initialize queues of Processes
+		
 		for(int i = 0; i < queue.length; i++) {
 			queue[i] = 1;
 		}
 		
-		for(int i = 1; i <= algorithm.length; i++) {
-			getProcess(algorithm[i-1], mainProcess, quantumTime[i-1], i);
+		int[] arrivalTimes = new int[process.length];
+		for(int i = 0; i < process.length; i++) {
+			arrivalTimes[i] = temp[i].getArrivalTime();
 		}
+		
+		//totalConsumedTime = SchedulingAlgorithmsUtilities.totalTime(1, temp) + SchedulingAlgorithmsUtilities.getSmallestNum(arrivalTimes, 1);
+		
+		new Thread() {
+			public void run() {
+				for(int i = 1; i <= algorithm.length; i++) {
+					getProcess(algorithm[i-1], mainProcess, quantumTime[i-1], i);
+				}
+			}
+		}.start();
 	}
 	
 	public void getProcess(int num, Process[] process, int quantumTime, int queueNumber) {
 		switch (num) {
 		case 1: 
-			RoundRobin(process, quantumTime, queueNumber);
+			RR(process, quantumTime, queueNumber);
 			break;
 		case 2:
 			FCFS(process, queueNumber);
@@ -52,28 +66,33 @@ public class mlfq{
 		}
 	}
 	
-	public void RoundRobin(Process[] process, int quantumTime, int queueNumber) {
+	public void RR(Process[] process, int quantumTime, int queueNumber) {
 		Process[] roundRobinProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
 		int burstTime;
 				
-		for(int i = 0; i < roundRobinProcess.length; i++) {
-			int counter = 0;
-			burstTime = roundRobinProcess[i].getBurstTime();
-			boolean flag = true;
-			for(int j = 0; j < burstTime; j++) {
-				if(counter < quantumTime && queue[i] == queueNumber) {
-					counter++;
-					roundRobinProcess[i].setBurstTime(roundRobinProcess[i].getBurstTime() - 1);
-					System.out.print(roundRobinProcess[i].getProcessID() + " ");				
-				}else{
-					if(flag == true) {
-						queue[i]++;	
-						flag = false;
-					}
-				}				
-			}		
-		}
-		
+		if(queueNumber == algorithm.length) {		
+			RoundRobin roundRobin = new RoundRobin(process, quantumTime);
+		}else {
+			for(int i = 0; i < roundRobinProcess.length; i++) {
+				int counter = 0;
+				burstTime = roundRobinProcess[i].getBurstTime();
+				boolean flag = true;
+				
+				for(int j = 0; j < burstTime; j++) {
+					if(counter < quantumTime && queue[i] == queueNumber) {
+						counter++;
+						roundRobinProcess[i].setBurstTime(roundRobinProcess[i].getBurstTime() - 1);
+						System.out.print(roundRobinProcess[i].getProcessID() + " ");				
+					}else{
+						if(flag == true) {
+							queue[i]++;	
+							flag = false;
+						}
+					}				
+				}
+				
+			}
+		}		
 		mainProcess = roundRobinProcess;
 		System.out.println();
 	}
@@ -144,10 +163,6 @@ public class mlfq{
 		}.start();
 		
 		mainProcess = fcfsProcess;
-		System.out.println();
-		for(int i=0; i < fcfsProcess.length; i++) {
-			System.out.print(fcfsProcess[i].getProcessID() + " ");
-		}
 		System.out.println();
 		
 	}
@@ -568,8 +583,8 @@ Process[] nPrioProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, pro
 				   new Process(5, 4, 2, 6), 
 				   new Process(6, 3, 1, 10)}; 
 		Process temp[] = p;
-		int algo[] = {6, 2};
-		int quantumTime[] = {0, 0};
+		int algo[] = {1, 1};
+		int quantumTime[] = {2, 2};
 		
 		mlfq mlfq = new mlfq(p, true, algo, quantumTime);
 		

@@ -31,7 +31,7 @@ public class RoundRobin {
 				
 				if (counter < roundRobinProcess[0].getArrivalTime()) {
 					for(int k = 0; k < roundRobinProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter);
+						//GanttChartPanel.addToGanttChart(0, counter);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -54,7 +54,7 @@ public class RoundRobin {
 					int currentArrival = usable.getArrivalTime();
 					
 					if (!responseTimeDone[usable.getProcessID() - 1]) {
-						TimesPanel.responseTime(counter, usable.getArrivalTime(), usable.getProcessID());
+						//TimesPanel.responseTime(counter, usable.getArrivalTime(), usable.getProcessID());
 						responseTimeDone[usable.getProcessID() - 1] = true;
 					}
 					
@@ -69,13 +69,13 @@ public class RoundRobin {
 									if (queue1.getIndex() == 0) {
 										if(temp1[i].getProcessID() == usable.getProcessID()) {									
 											queue1.initialProcess(temp1[i]);
-											GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
+											//GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
 											System.out.print(temp1[i].getProcessID() + " ");
 										}
 									} else {
 										if (temp1[i].getProcessID() == usable.getProcessID()) {
 											queue1.enqueue(temp1[i]);
-											GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
+											//GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
 											System.out.print(temp1[i].getProcessID() + " ");
 										}
 									}
@@ -97,13 +97,13 @@ public class RoundRobin {
 									if(queue1.getIndex() == 0) {
 										if (temp1[i].getProcessID() == usable.getProcessID()) {
 											queue1.initialProcess(temp1[i]);
-											GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
+											//GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
 											System.out.print(temp1[i].getProcessID() + " ");
 										}
 									} else {
 										if (temp1[i].getProcessID() == usable.getProcessID()) {
 											queue1.enqueue(temp1[i]);
-											GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
+											//GanttChartPanel.addToGanttChart(temp1[i].getProcessID(), counter);
 											System.out.print(temp1[i].getProcessID() + " ");
 										}
 									}
@@ -118,8 +118,8 @@ public class RoundRobin {
 					}
 					
 					if (isDone) {
-						TimesPanel.turnaroundTime(counter, arrivals[usable.getProcessID() - 1], usable.getProcessID());
-						TimesPanel.waitingTime(bursts[usable.getProcessID() - 1], usable.getProcessID());
+						//TimesPanel.turnaroundTime(counter, arrivals[usable.getProcessID() - 1], usable.getProcessID());
+						//TimesPanel.waitingTime(bursts[usable.getProcessID() - 1], usable.getProcessID());
 						isDone = false;
 					}
 					
