@@ -12,6 +12,7 @@ import com.mlfq.data_structures.Process;
 import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.panels.TimesPanel;
 import com.mlfq.scheduling_algorithms.FirstComeFirstServe;
+import com.mlfq.scheduling_algorithms.FixedTimeSlot;
 import com.mlfq.scheduling_algorithms.MLFQ;
 import com.mlfq.scheduling_algorithms.NonPreemptivePriorityScheduling;
 import com.mlfq.scheduling_algorithms.PreemptivePriorityScheduling;
@@ -34,7 +35,7 @@ public class MLFQHandler
 	
 	private static Color[] color;
 	
-	public MLFQHandler(DefaultTableModel tableModel, ArrayList<JComboBox<String>> selectedAlgo, ArrayList<JTextField> quantumTime)
+	public MLFQHandler(DefaultTableModel tableModel, ArrayList<JComboBox<String>> selectedAlgo, ArrayList<JTextField> quantumTime, int priorityPolicy)
 	{
 		this.tableModel = tableModel;
 		this.selectedAlgo = selectedAlgo;
@@ -46,7 +47,15 @@ public class MLFQHandler
 		if (selectedAlgo.size() == 1) {
 			implementAlgorithm();
 		} else {
-			new MLFQ(process, true, selectedAlgo, quantumTime);
+			if (priorityPolicy == 0) {
+				if (selectedAlgo.get(0).getSelectedIndex() == 5) {
+					new MLFQ(process, true, selectedAlgo, quantumTime);
+				} else {
+					implementAlgorithm();
+				}
+			} else {
+//				new FixedTimeSlot();
+			}
 		}
 	}
 	
@@ -92,30 +101,30 @@ public class MLFQHandler
 	{
 		TimesPanel.initializeTimes(tableModel.getRowCount());
 		
-		for(int i = 0; i < selectedAlgo.size(); i++) {
-			switch(selectedAlgo.get(i).getSelectedIndex()) {
-				case 0:
-					new FirstComeFirstServe(process);
-					break;
-				case 1:
-					new ShortestJobFirst(process);
-					break;
-				case 2:
-					new ShortestRemainingTimeFirst(process);
-					break;
-				case 3:
-					new PreemptivePriorityScheduling(process);
-					break;
-				case 4:
-					new NonPreemptivePriorityScheduling(process);
-					break;
-				case 5:
-					new RoundRobin(process, Integer.parseInt(quantumTime.get(0).getText()));
-					break;
-				default:
-					break;
-			}
+//		for(int i = 0; i < selectedAlgo.size(); i++) {
+		switch(selectedAlgo.get(0).getSelectedIndex()) {
+			case 0:
+				new FirstComeFirstServe(process);
+				break;
+			case 1:
+				new ShortestJobFirst(process);
+				break;
+			case 2:
+				new ShortestRemainingTimeFirst(process);
+				break;
+			case 3:
+				new PreemptivePriorityScheduling(process);
+				break;
+			case 4:
+				new NonPreemptivePriorityScheduling(process);
+				break;
+			case 5:
+				new RoundRobin(process, Integer.parseInt(quantumTime.get(0).getText()));
+				break;
+			default:
+				break;
 		}
+//		}
 	}
 	
 	private void implementAlgorithmForTestCase() {

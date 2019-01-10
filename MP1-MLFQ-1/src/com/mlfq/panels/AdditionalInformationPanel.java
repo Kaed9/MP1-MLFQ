@@ -155,7 +155,7 @@ public class AdditionalInformationPanel extends JPanel
 	public static void setDisplayAlgoAndPolicy(String[] algorithms, String policy, int[] quantumTimes)
 	{
 		for(int i = 0; i < algorithms.length; i++) {
-			addRow("" + (i + 1), algorithms[i] + "" + (quantumTimes[i] == 0 ? "" : ", quantum time = " + quantumTimes[i]));
+			addRow("" + (i + 1), algorithms[i] + "" + (quantumTimes[i] == 0 ? "" : (policy.equalsIgnoreCase("Higher before lower") ? ", quantum time = " + quantumTimes[i] : ", time slice = " + quantumTimes[i])));
 		}
 		
 		policyField.setText(policy);

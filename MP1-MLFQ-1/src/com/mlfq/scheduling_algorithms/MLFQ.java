@@ -15,7 +15,7 @@ public class MLFQ{
 	Process[] mainProcess;
 	boolean priority = true; //
 	int[] queue;
-	int timeElapsed, totalConsumedTime, ganttChartCounter;
+	int timeElapsed, totalConsumedTime, ganttChartCounter, selectedAlgoSize;
 	//note: algorithm: {1:RR, 2:FCFS, 3:SJF, 4:SRTF, 5:Prio, 6:NPrio}
 	
 	public MLFQ(Process[] process, boolean priority, ArrayList<JComboBox<String>> selectedAlgo, ArrayList<JTextField> quantumTime) {
@@ -26,6 +26,7 @@ public class MLFQ{
 		this.timeElapsed = 0;
 		this.totalConsumedTime = 0;
 		this.ganttChartCounter = 0;
+		this.selectedAlgoSize = selectedAlgo.size();
 		Process[] temp = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length-1, 0);
 		
 		for(int i = 0; i < queue.length; i++) {
@@ -92,28 +93,33 @@ public class MLFQ{
 			}
 		}
 		
-		for(int i = 0; i < roundRobinProcess.length; i++) {
-			int counter = 0;
-			burstTime = roundRobinProcess[i].getBurstTime();
-			boolean flag = true;
-			for(int j = 0; j < burstTime; j++) {
-				if(counter < quantumTime && queue[i] == queueNumber) {
-					counter++;
-					timeElapsed = counter;
-					roundRobinProcess[i].setBurstTime(roundRobinProcess[i].getBurstTime() - 1);
-					System.out.print(roundRobinProcess[i].getProcessID() + " ");
-					GanttChartPanel.addToGanttChart(roundRobinProcess[i].getProcessID(), ganttChartCounter, queueNumber);
-					
-					ganttChartCounter++;
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException ex) { }
-				} else {
-					if(flag == true) {
-						queue[i]++;	
-						flag = false;
-					}
-				}
+		if (queueNumber == selectedAlgoSize) {
+			new RoundRobin(process, quantumTime, ganttChartCounter, queueNumber);
+		} else {
+			for (int i = 0; i < roundRobinProcess.length; i++) {
+				int counter = 0;
+				burstTime = roundRobinProcess[i].getBurstTime();
+				boolean flag = true;
+				
+				for (int j = 0; j < burstTime; j++) {
+					if (counter < quantumTime && queue[i] == queueNumber) {
+						counter++;
+						timeElapsed = counter;
+						roundRobinProcess[i].setBurstTime(roundRobinProcess[i].getBurstTime() - 1);
+						System.out.print(roundRobinProcess[i].getProcessID() + " ");
+						GanttChartPanel.addToGanttChart(roundRobinProcess[i].getProcessID(), ganttChartCounter, queueNumber);
+						
+						ganttChartCounter++;
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException ex) { }
+					} else {
+						if (flag == true) {
+							queue[i]++;	
+							flag = false;
+						}
+					}				
+				}				
 			}
 		}
 		

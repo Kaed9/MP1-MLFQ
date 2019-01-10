@@ -89,6 +89,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		deleteQueue.addActionListener(this);
 		submitButton.addActionListener(this);
 		cancelButton.addActionListener(this);
+		priorityPolicy.addItemListener(this);
 	}
 	
 	private void addToList()
@@ -97,11 +98,11 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		algorithms = new JComboBox<String>(algorithmsArray);
 //		algorithms.addItemListener(this);
 		
-		quantumTimeLabel = new JLabel("Quantum Time", JLabel.CENTER);
-		quantumTimeLabel.setEnabled(false);
+		quantumTimeLabel = new JLabel(priorityPolicy.getSelectedIndex() == 0 ? "Quantum Time" : "Time Slice", JLabel.CENTER);
+//		quantumTimeLabel.setEnabled(false);
 		quantumTimeField = new JTextField();
 		quantumTimeField.setText("0");
-		quantumTimeField.setEnabled(false);
+		quantumTimeField.setEnabled(priorityPolicy.getSelectedIndex() == 0 ? false : true);
 		
 		addedPanel = new JPanel(new MigLayout("fillx", "[grow, 20%][grow, 30%][grow, 20%][grow, 30%]"));
 		addedPanel.add(queueNumberLabel, "grow, align center");
@@ -206,7 +207,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 			AdditionalInformationPanel.clearComponents();
 			GanttChartPanel.clearComponents();
 			AdditionalInformationPanel.setDisplayAlgoAndPolicy(algorithms, priorityPolicy.getSelectedItem().toString(), quantumTimes);
-			new MLFQHandler(ProcessControlBlockPanel.getTableModel(), selectedAlgo, quantumTime);
+			new MLFQHandler(ProcessControlBlockPanel.getTableModel(), selectedAlgo, quantumTime, priorityPolicy.getSelectedIndex());
 			dispose();
 		} else if (event.getSource() == cancelButton) {
 			dispose();
@@ -222,13 +223,35 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 			JComboBox<String> temp = selectedAlgo.get(i);
 			JTextField tempField = quantumTime.get(i);
 			if (event.getSource() == temp) {
-				if (temp.getSelectedIndex() == 5) {
-					tempField.setEnabled(true);
-				} else {
-					tempField.setEnabled(false);
-					tempField.setText("0");
+				if (priorityPolicy.getSelectedIndex() == 0) {
+					if (temp.getSelectedIndex() == 5) {
+						tempField.setEnabled(true);
+					} else {
+						tempField.setEnabled(false);
+						tempField.setText("0");
+					}
 				}
 			}
+		}
+		
+		if (event.getSource() == priorityPolicy) {
+			queuesPanel.removeAll();
+			queuesPanel.repaint();
+			queuesPanel.revalidate();
+			
+			buttonsPanel.add(addQueue, "align right");
+			buttonsPanel.add(deleteQueue, "align left");
+			queuesPanel.add(buttonsPanel, "spanx 2, grow, align center, wrap");
+			
+			for (int i = 0; i < selectedAlgo.size(); i++) {
+				selectedAlgo.remove(i);
+				quantumTime.remove(i);
+			}
+			
+			queuesPanel.repaint();
+			queuesPanel.revalidate();
+			
+			checkConstraints();
 		}
 	}
 }
