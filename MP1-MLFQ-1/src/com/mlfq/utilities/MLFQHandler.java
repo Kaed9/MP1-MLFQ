@@ -14,6 +14,7 @@ import com.mlfq.panels.TimesPanel;
 import com.mlfq.scheduling_algorithms.FirstComeFirstServe;
 import com.mlfq.scheduling_algorithms.FixedTimeSlot;
 import com.mlfq.scheduling_algorithms.MLFQ;
+import com.mlfq.scheduling_algorithms.MLFQPolicy;
 import com.mlfq.scheduling_algorithms.NonPreemptivePriorityScheduling;
 import com.mlfq.scheduling_algorithms.PreemptivePriorityScheduling;
 import com.mlfq.scheduling_algorithms.RoundRobin;
