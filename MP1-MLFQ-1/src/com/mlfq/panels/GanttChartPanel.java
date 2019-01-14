@@ -75,6 +75,7 @@ public class GanttChartPanel extends JPanel
 	{
 		JLabel label = null, counterLabel = null;
 		JPanel labelPanel = new JPanel(new MigLayout("insets 0, wrap 1", "[]0[]", "[]0[]"));
+		queueNumber++;
 		
 		for (int i = 0; i < queueCount; i++) {
 			if (i == (queueNumber - 1)) {

@@ -50,7 +50,8 @@ public class MLFQHandler
 		} else {
 			if (priorityPolicy == 0) {
 				if (selectedAlgo.get(0).getSelectedIndex() == 5) {
-					new MLFQ(process, true, selectedAlgo, quantumTime);
+//					new MLFQ(process, true, selectedAlgo, quantumTime);
+					new MLFQPolicy(process, selectedAlgo, quantumTime);
 				} else {
 					implementAlgorithm();
 				}

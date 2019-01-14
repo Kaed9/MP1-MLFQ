@@ -7,6 +7,7 @@ import javax.swing.JTextField;
 
 import com.mlfq.data_structures.Process;
 import com.mlfq.data_structures.Queue;
+import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.utilities.SchedulingAlgorithmsUtilities;
 
 public class MLFQPolicy {
@@ -16,6 +17,9 @@ public class MLFQPolicy {
 	private Process[] mlfqProcess;
 	private int[] originalBursts;
 	
+	/*
+	 * for testing use
+	 */
 	public MLFQPolicy(Process[] process, int[] selectedAlgo, int[] quantumTime) {
 		
 		queue = new Queue[selectedAlgo.length];
@@ -44,6 +48,9 @@ public class MLFQPolicy {
 		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
+	/*
+	 * for actual use
+	 */
 	public MLFQPolicy(Process[] process, ArrayList<JComboBox<String>> selectedAlgo, ArrayList<JTextField> quantumTime) {
 		
 		queue = new Queue[selectedAlgo.size()];
@@ -86,6 +93,7 @@ public class MLFQPolicy {
 							Prio(algorithms, quantumTimes);
 							break;
 						case 4:
+							NPrio(algorithms, quantumTimes);
 							break;
 						case 5:
 							RoundRobin(quantumTimes[queueIndex], algorithms, quantumTimes);
@@ -107,6 +115,7 @@ public class MLFQPolicy {
 	
 		for (int i = ganttChartCounter; i < currentProcess.getArrivalTime(); i++) {
 			System.out.print("0|" + ganttChartCounter + " ");
+			GanttChartPanel.addToGanttChart(0, ganttChartCounter, queueIndex);
 			ganttChartCounter++;
 			
 			try {
@@ -117,6 +126,7 @@ public class MLFQPolicy {
 		for (int i = 0; i < quantumTime; i++) {
 			if (currentProcess.getBurstTime() != 0) {
 				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
 				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
 				ganttChartCounter++;
 				
@@ -164,6 +174,7 @@ public class MLFQPolicy {
 			} catch (NullPointerException ex) { }
 			for (int i = 0; i < burst; i++) {
 				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
 				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
 				ganttChartCounter++;
 				
@@ -237,6 +248,7 @@ public class MLFQPolicy {
 		
 		for (int i = 0; i < burst; i++) {
 			System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+			GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
 			currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
 			ganttChartCounter++;
 			
@@ -312,6 +324,7 @@ public class MLFQPolicy {
 		boolean ifContinue = true;
 		for (int i = 0; i < burst; i++) {
 			System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+			GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
 			currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
 			ganttChartCounter++;
 			
@@ -367,7 +380,173 @@ public class MLFQPolicy {
 	
 	private void Prio(int[] algorithms, int[] quantumTimes) {
 		
+		Process currentProcess = null;
+		if (queue[queueIndex].getIndex() == 1) {
+			currentProcess = queue[queueIndex].dequeue();
+		} else {
+			Process[] prioProcess = new Process[queue[queueIndex].getIndex()];
+			int index = queue[queueIndex].getIndex();
+			for (int i = 0; i < index; i++) {
+				prioProcess[i] = queue[queueIndex].dequeue();
+			}
+			
+			Process temp = null;
+			for (int i = 0; i < prioProcess.length - 1; i++) {
+				 for(int j = 0; j < prioProcess.length - 1; j++) {
+					 if (prioProcess[i].getPriority() > prioProcess[j + 1].getPriority()) {
+						temp = prioProcess[i];
+						prioProcess[i] = prioProcess[j + 1];
+						prioProcess[j + 1] = temp;
+					 }
+				}
+			}
+			
+			for (int i = 0; i < prioProcess.length; i++) {
+				try {
+					queue[queueIndex].enqueue(prioProcess[i]);
+				} catch (NullPointerException ex) {
+					queue[queueIndex].initialProcess(prioProcess[i]);
+				}
+			}
+			
+			currentProcess = queue[queueIndex].dequeue();
+		}
 		
+		int burst = 0;
+		try {
+			burst = currentProcess.getBurstTime();
+		} catch (NullPointerException ex) { }
+		
+		for (int i = 0; i < burst; i++) {
+			System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+			GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+			currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
+			ganttChartCounter++;
+			
+			try {
+				Thread.sleep(100);
+			} catch(InterruptedException ex) { }
+		}
+
+		for (int j = 0; j < mlfqProcess.length; j++) {
+			if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() != 0) {
+				try {
+					queue[0].enqueue(mlfqProcess[j]);
+				} catch (NullPointerException ex) {
+					queue[0].initialProcess(mlfqProcess[j]);
+				}
+			}
+		}
+		
+		if (queue[queueIndex].getIndex() == 0) {
+			if (queue[0].getIndex() != 0) {
+				queueIndex = 0;
+			} else {
+				queueIndex++;
+			}
+			System.out.println();
+		} else {
+			// turnaround time, waiting time
+		}
+		
+		checkAlgorithm(algorithms, quantumTimes);
+	}
+	
+	private void NPrio(int[] algorithms, int[] quantumTimes) {
+		
+		Process currentProcess = null;
+		
+		if (queue[queueIndex].getIndex() == 1) {
+			currentProcess = queue[queueIndex].dequeue();
+		} else {
+			Process[] nPrioProcess = new Process[queue[queueIndex].getIndex()];
+			int index = queue[queueIndex].getIndex();
+			for (int i = 0; i < index; i++) {
+				nPrioProcess[i] = queue[queueIndex].dequeue();
+			}
+			
+			Process temp = null;
+			for (int i = 0; i < nPrioProcess.length - 1; i++) {
+				 for(int j = 0; j < nPrioProcess.length - 1; j++) {
+					 if (nPrioProcess[i].getPriority() > nPrioProcess[j + 1].getPriority()) {
+						temp = nPrioProcess[i];
+						nPrioProcess[i] = nPrioProcess[j + 1];
+						nPrioProcess[j + 1] = temp;
+					 }
+				}
+			}
+			
+			for (int i = 0; i < nPrioProcess.length; i++) {
+				try {
+					queue[queueIndex].enqueue(nPrioProcess[i]);
+				} catch (NullPointerException ex) {
+					queue[queueIndex].initialProcess(nPrioProcess[i]);
+				}
+			}
+			
+			currentProcess = queue[queueIndex].dequeue();
+		}
+		
+		int burst = 0;
+		try {
+			burst = currentProcess.getBurstTime();
+		} catch (NullPointerException ex) { }
+		
+		boolean ifContinue = true;
+		for (int i = 0; i < burst; i++) {
+			System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+			GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+			currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
+			ganttChartCounter++;
+			
+			try {
+				Thread.sleep(100);
+			} catch(InterruptedException ex) { }
+			
+			for (int j = 0; j < mlfqProcess.length; j++) {
+				if (ganttChartCounter == mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() != 0 && currentProcess.getPriority() > mlfqProcess[j].getPriority()) {
+					try {
+						queue[0].enqueue(mlfqProcess[j]);
+					} catch (NullPointerException ex) {
+						queue[0].initialProcess(mlfqProcess[j]);
+					}
+					
+					ifContinue = false;
+				}
+			}
+			
+			if(!ifContinue) {
+				queue[queueIndex].enqueue(currentProcess);
+				queueIndex = 0;
+				System.out.println();
+				break;
+			}
+		}
+		
+		for (int j = 0; j < mlfqProcess.length; j++) {
+			if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() == originalBursts[j]) {
+				try {
+					queue[0].enqueue(mlfqProcess[j]);
+				} catch (NullPointerException ex) {
+					queue[0].initialProcess(mlfqProcess[j]);
+				}
+			}
+		}
+		
+		if (ifContinue) {
+			if (queue[queueIndex].getIndex() == 0) {
+				if (queue[0].getIndex() != 0) {
+					queueIndex = 0;
+				} else {
+					queueIndex++;
+				}
+				System.out.println();
+			} else {
+				// turnaround time, waiting time
+			}
+		}
+		
+		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
 	public static void main(String[] args) {
@@ -386,7 +565,7 @@ public class MLFQPolicy {
 	   			 			 new Process(3, 20, 8, 1), 
 	   			 			 new Process(4, 25, 5, 3)};
 		
-		int algo[] = {5, 0};
+		int algo[] = {5, 4};
 		int quantumTime[] = {4, 0};
 		
 		new MLFQPolicy(process, algo, quantumTime);
