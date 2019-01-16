@@ -13,7 +13,6 @@ import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.panels.TimesPanel;
 import com.mlfq.scheduling_algorithms.FirstComeFirstServe;
 import com.mlfq.scheduling_algorithms.FixedTimeSlot;
-import com.mlfq.scheduling_algorithms.MLFQ;
 import com.mlfq.scheduling_algorithms.MLFQPolicy;
 import com.mlfq.scheduling_algorithms.NonPreemptivePriorityScheduling;
 import com.mlfq.scheduling_algorithms.PreemptivePriorityScheduling;
@@ -50,7 +49,7 @@ public class MLFQHandler
 		} else {
 			if (priorityPolicy == 0) {
 				if (selectedAlgo.get(0).getSelectedIndex() == 5) {
-//					new MLFQ(process, true, selectedAlgo, quantumTime);
+					TimesPanel.initializeTimes(tableModel.getRowCount());
 					new MLFQPolicy(process, selectedAlgo, quantumTime);
 				} else {
 					implementAlgorithm();

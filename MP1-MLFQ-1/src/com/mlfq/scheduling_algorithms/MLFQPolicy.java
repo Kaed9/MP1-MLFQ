@@ -8,6 +8,7 @@ import javax.swing.JTextField;
 import com.mlfq.data_structures.Process;
 import com.mlfq.data_structures.Queue;
 import com.mlfq.panels.GanttChartPanel;
+import com.mlfq.panels.TimesPanel;
 import com.mlfq.utilities.SchedulingAlgorithmsUtilities;
 
 public class MLFQPolicy {
@@ -16,6 +17,7 @@ public class MLFQPolicy {
 	private int queueIndex, ganttChartCounter;
 	private Process[] mlfqProcess;
 	private int[] originalBursts;
+	private boolean[] isResponseDone, isDone;
 	
 	/*
 	 * for testing use
@@ -32,8 +34,12 @@ public class MLFQPolicy {
 		mlfqProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
 		
 		originalBursts = new int[mlfqProcess.length];
+		isResponseDone = new boolean[mlfqProcess.length];
+		isDone = new boolean[mlfqProcess.length];
 		for (int i = 0; i < mlfqProcess.length; i++) {
 			originalBursts[i] = mlfqProcess[i].getBurstTime();
+			isResponseDone[i] = false;
+			isDone[i] = false;
 		}
 		
 		int[] algorithms = new int[selectedAlgo.length];
@@ -44,6 +50,12 @@ public class MLFQPolicy {
 		}
 		
 		queue[0].initialProcess(mlfqProcess[0]);
+		
+		for (int i = 1; i < mlfqProcess.length; i++) {
+			if (mlfqProcess[0].getArrivalTime() == mlfqProcess[i].getArrivalTime()) {
+				queue[0].enqueue(mlfqProcess[i]);
+			}
+		}
 		
 		checkAlgorithm(algorithms, quantumTimes);
 	}
@@ -62,6 +74,15 @@ public class MLFQPolicy {
 		ganttChartCounter = 0;
 		mlfqProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
 		
+		originalBursts = new int[mlfqProcess.length];
+		isResponseDone = new boolean[mlfqProcess.length];
+		isDone = new boolean[mlfqProcess.length];
+		for (int i = 0; i < mlfqProcess.length; i++) {
+			originalBursts[i] = mlfqProcess[i].getBurstTime();
+			isResponseDone[i] = false;
+			isDone[i] = false;
+		}
+		
 		int[] algorithms = new int[selectedAlgo.size()];
 		int[] quantumTimes = new int[quantumTime.size()];
 		for (int i = 0; i < selectedAlgo.size(); i++) {
@@ -71,6 +92,12 @@ public class MLFQPolicy {
 		
 		queue[0].initialProcess(mlfqProcess[0]);
 		
+		for (int i = 1; i < mlfqProcess.length; i++) {
+			if (mlfqProcess[0].getArrivalTime() == mlfqProcess[i].getArrivalTime()) {
+				queue[0].enqueue(mlfqProcess[i]);
+			}
+		}
+		
 		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
@@ -78,6 +105,17 @@ public class MLFQPolicy {
 		
 		new Thread() {
 			public void run() {
+				if (queueIndex == queue.length) {
+					for (int i = 0; i < mlfqProcess.length; i++) {
+						if (mlfqProcess[i].getBurstTime() != 0) {
+							queue[0].initialProcess(mlfqProcess[i]);
+							queueIndex = 0;
+							break;
+						} else {
+							queueIndex = queue.length + 1;
+						}
+					}
+				}
 				try {
 					switch(algorithms[queueIndex]) {
 						case 0:
@@ -109,13 +147,109 @@ public class MLFQPolicy {
 	
 	private void RoundRobin(int quantumTime, int[] algorithms, int[] quantumTimes) {
 		
+		try {
+			Process currentProcess = queue[queueIndex].dequeue();
+			
+			for (int i = ganttChartCounter; i < currentProcess.getArrivalTime(); i++) {
+				System.out.print("0|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(0, ganttChartCounter, queueIndex);
+				ganttChartCounter++;
+				
+				try {
+					Thread.sleep(100);
+				} catch(InterruptedException ex) { }
+			}
+			
+			for (int i = 0; i < mlfqProcess.length; i++) {
+				if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isResponseDone[i]) {
+					TimesPanel.responseTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+					isResponseDone[i] = true;
+				}
+			}
+			
+			for (int i = 0; i < quantumTime; i++) {
+				if (currentProcess.getBurstTime() != 0) {
+					System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+					GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+					currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
+					ganttChartCounter++;
+					
+					try {
+						Thread.sleep(100);
+					} catch(InterruptedException ex) { }
+				}
+				
+				for (int j = 0; j < mlfqProcess.length; j++) {
+					 if (ganttChartCounter == mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getProcessID() != currentProcess.getProcessID()) {
+						 try {
+							 queue[(queue.length == 3 ? (queueIndex == 1 ? queueIndex - 1 : queueIndex) : queueIndex)].enqueue(mlfqProcess[j]);
+//							 if (queueIndex == queue.length - 1) {
+//								 queue[0].enqueue(mlfqProcess[j]);
+//							 } else if () {
+//								 
+//							 }
+						 } catch (NullPointerException ex) {
+							 queue[(queue.length == 3 ? (queueIndex == 1 ? queueIndex - 1 : queueIndex) : queueIndex)].initialProcess(mlfqProcess[j]);
+						 }
+					 }
+				}
+			}
+			
+			if (currentProcess.getBurstTime() != 0) {
+				if (queueIndex == queue.length - 1 && algorithms[queue.length - 1] == 5) {
+					try {
+						queue[queueIndex].enqueue(currentProcess);
+					} catch (NullPointerException ex) {
+						queue[queueIndex].initialProcess(currentProcess);
+					}
+				} else {
+					try {
+						queue[queueIndex + 1].enqueue(currentProcess);
+					} catch (NullPointerException ex) {
+						queue[queueIndex + 1].initialProcess(currentProcess);
+					}
+				}
+			}
+			
+			try {
+				if (currentProcess.getBurstTime() == 0) {
+					for (int i = 0; i < originalBursts.length; i++) {
+						if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isDone[i]) {
+							TimesPanel.turnaroundTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+							TimesPanel.waitingTime(originalBursts[i], currentProcess.getProcessID());
+							isDone[i] = true;
+						}
+					}
+				}
+			} catch (NullPointerException ex) { }
+			
+			if (queue[queueIndex].getIndex() == 0) {
+				if (queueIndex == queue.length - 1 && queue[0].getIndex() != 0) {
+					queueIndex = 0;
+				} else if (queue.length == 3 && queueIndex == 1 && queue[0].getIndex() != 0) {
+					queueIndex = 0;
+				} else {
+					queueIndex++;
+				}
+				System.out.println();
+			}
+		} catch (NullPointerException ex) { }
+		
+		checkAlgorithm(algorithms, quantumTimes);
+	}
+	
+	private void FCFS(int[] algorithms, int[] quantumTimes) {
+		
 		Process currentProcess = queue[queueIndex].dequeue();
-	
-		// response time
-	
-		for (int i = ganttChartCounter; i < currentProcess.getArrivalTime(); i++) {
-			System.out.print("0|" + ganttChartCounter + " ");
-			GanttChartPanel.addToGanttChart(0, ganttChartCounter, queueIndex);
+		
+		int burst = 0;
+		try {
+			burst = currentProcess.getBurstTime();
+		} catch (NullPointerException ex) { }
+		for (int i = 0; i < burst; i++) {
+			System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+			GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+			currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
 			ganttChartCounter++;
 			
 			try {
@@ -123,88 +257,38 @@ public class MLFQPolicy {
 			} catch(InterruptedException ex) { }
 		}
 		
-		for (int i = 0; i < quantumTime; i++) {
-			if (currentProcess.getBurstTime() != 0) {
-				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
-				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
-				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
-				ganttChartCounter++;
-				
+		for (int j = 0; j < mlfqProcess.length; j++) {
+			if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() != 0) {
 				try {
-					Thread.sleep(100);
-				} catch(InterruptedException ex) { }
+					queue[0].enqueue(mlfqProcess[j]);
+				} catch (NullPointerException ex) {
+					queue[0].initialProcess(mlfqProcess[j]);
+				}
 			}
-			
-			for (int j = 0; j < mlfqProcess.length; j++) {
-				 if (ganttChartCounter == mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getProcessID() != currentProcess.getProcessID()) {
-					 try {
-						 queue[queueIndex].enqueue(mlfqProcess[j]);
-					 } catch (NullPointerException ex) {
-						 queue[queueIndex].initialProcess(mlfqProcess[j]);
-					 }
-				 }
-			}
-		}
-		
-		if (currentProcess.getBurstTime() != 0) {
-			try {
-				queue[queueIndex + 1].enqueue(currentProcess);
-			} catch (NullPointerException ex) {
-				queue[queueIndex + 1].initialProcess(currentProcess);
-			}
-		} else {
-			// turnaround time, waiting time
 		}
 		
 		if (queue[queueIndex].getIndex() == 0) {
-			queueIndex++;
+			if (queue[0].getIndex() != 0) {
+				queueIndex = 0;
+			} else {
+				queueIndex++;
+			}
 			System.out.println();
 		}
 		
-		checkAlgorithm(algorithms, quantumTimes);
-	}
-	
-	private void FCFS(int[] algorithms, int[] quantumTimes) {
-		
-			Process currentProcess = queue[queueIndex].dequeue();
-			
-			int burst = 0;
-			try {
-				burst = currentProcess.getBurstTime();
-			} catch (NullPointerException ex) { }
-			for (int i = 0; i < burst; i++) {
-				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
-				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
-				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
-				ganttChartCounter++;
-				
-				try {
-					Thread.sleep(100);
-				} catch(InterruptedException ex) { }
-			}
-			
-			for (int j = 0; j < mlfqProcess.length; j++) {
-				if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() != 0) {
-					try {
-						queue[0].enqueue(mlfqProcess[j]);
-					} catch (NullPointerException ex) {
-						queue[0].initialProcess(mlfqProcess[j]);
+		try {
+			if (currentProcess.getBurstTime() == 0) {
+				for (int i = 0; i < originalBursts.length; i++) {
+					if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isDone[i]) {
+						TimesPanel.turnaroundTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+						TimesPanel.waitingTime(originalBursts[i], currentProcess.getProcessID());
+						isDone[i] = true;
 					}
 				}
 			}
-			
-			if (queue[queueIndex].getIndex() == 0) {
-				if (queue[0].getIndex() != 0) {
-					queueIndex = 0;
-				} else {
-					queueIndex++;
-				}
-				System.out.println();
-			} else {
-				// turnaround time, waiting time
-			}
-			
-			checkAlgorithm(algorithms, quantumTimes);
+		} catch (NullPointerException ex) { }
+		
+		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
 	private void SJF(int[] algorithms, int[] quantumTimes) {
@@ -274,9 +358,19 @@ public class MLFQPolicy {
 				queueIndex++;
 			}
 			System.out.println();
-		} else {
-			// turnaround time, waiting time
 		}
+		
+		try {
+			if (currentProcess.getBurstTime() == 0) {
+				for (int i = 0; i < originalBursts.length; i++) {
+					if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isDone[i]) {
+						TimesPanel.turnaroundTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+						TimesPanel.waitingTime(originalBursts[i], currentProcess.getProcessID());
+						isDone[i] = true;
+					}
+				}
+			}
+		} catch (NullPointerException ex) { }
 		
 		checkAlgorithm(algorithms, quantumTimes);
 	}
@@ -288,28 +382,28 @@ public class MLFQPolicy {
 		if (queue[queueIndex].getIndex() == 1) {
 			currentProcess = queue[queueIndex].dequeue();
 		} else {
-			Process[] sjfProcess = new Process[queue[queueIndex].getIndex()];
+			Process[] srtfProcess = new Process[queue[queueIndex].getIndex()];
 			int index = queue[queueIndex].getIndex();
 			for (int i = 0; i < index; i++) {
-				sjfProcess[i] = queue[queueIndex].dequeue();
+				srtfProcess[i] = queue[queueIndex].dequeue();
 			}
 			
 			Process temp = null;
-			for (int i = 0; i < sjfProcess.length - 1; i++) {
-				 for(int j = 0; j < sjfProcess.length - 1; j++) {
-					 if (sjfProcess[i].getBurstTime() > sjfProcess[j + 1].getBurstTime()) {
-						temp = sjfProcess[i];
-						sjfProcess[i] = sjfProcess[j + 1];
-						sjfProcess[j + 1] = temp;
+			for (int i = 0; i < srtfProcess.length - 1; i++) {
+				 for(int j = 0; j < srtfProcess.length - 1; j++) {
+					 if (srtfProcess[i].getBurstTime() > srtfProcess[j + 1].getBurstTime()) {
+						temp = srtfProcess[i];
+						srtfProcess[i] = srtfProcess[j + 1];
+						srtfProcess[j + 1] = temp;
 					 }
 				}
 			}
 			
-			for (int i = 0; i < sjfProcess.length; i++) {
+			for (int i = 0; i < srtfProcess.length; i++) {
 				try {
-					queue[queueIndex].enqueue(sjfProcess[i]);
+					queue[queueIndex].enqueue(srtfProcess[i]);
 				} catch (NullPointerException ex) {
-					queue[queueIndex].initialProcess(sjfProcess[i]);
+					queue[queueIndex].initialProcess(srtfProcess[i]);
 				}
 			}
 			
@@ -333,14 +427,24 @@ public class MLFQPolicy {
 			} catch(InterruptedException ex) { }
 			
 			for (int j = 0; j < mlfqProcess.length; j++) {
-				if (ganttChartCounter == mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() != 0 && currentProcess.getBurstTime() > mlfqProcess[j].getBurstTime()) {
-					try {
-						queue[0].enqueue(mlfqProcess[j]);
-					} catch (NullPointerException ex) {
-						queue[0].initialProcess(mlfqProcess[j]);
+				if (ganttChartCounter == mlfqProcess[j].getArrivalTime()) {
+					if (mlfqProcess[j].getBurstTime() != 0/* && currentProcess.getBurstTime() > mlfqProcess[j].getBurstTime()*/) {
+						try {
+							queue[0].enqueue(mlfqProcess[j]);
+						} catch (NullPointerException ex) {
+							queue[0].initialProcess(mlfqProcess[j]);
+						}
+						
+						ifContinue = false;
+					} else {
+						if (mlfqProcess[j].getBurstTime() == originalBursts[j]) {
+							try {
+								queue[0].enqueue(mlfqProcess[j]);
+							} catch (NullPointerException ex) {
+								queue[0].initialProcess(mlfqProcess[j]);
+							}
+						}
 					}
-					
-					ifContinue = false;
 				}
 			}
 			
@@ -352,15 +456,15 @@ public class MLFQPolicy {
 			}
 		}
 		
-		for (int j = 0; j < mlfqProcess.length; j++) {
-			if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() == originalBursts[j]) {
-				try {
-					queue[0].enqueue(mlfqProcess[j]);
-				} catch (NullPointerException ex) {
-					queue[0].initialProcess(mlfqProcess[j]);
-				}
-			}
-		}
+//		for (int j = 0; j < mlfqProcess.length; j++) {
+//			if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() == originalBursts[j]) {
+//				try {
+//					queue[0].enqueue(mlfqProcess[j]);
+//				} catch (NullPointerException ex) {
+//					queue[0].initialProcess(mlfqProcess[j]);
+//				}
+//			}
+//		}
 		
 		if (ifContinue) {
 			if (queue[queueIndex].getIndex() == 0) {
@@ -371,14 +475,28 @@ public class MLFQPolicy {
 				}
 				System.out.println();
 			} else {
-				// turnaround time, waiting time
+				if (queue[0].getIndex() != 0) {
+					queueIndex = 0;
+				}
 			}
 		}
+		
+		try {
+			if (currentProcess.getBurstTime() == 0) {
+				for (int i = 0; i < originalBursts.length; i++) {
+					if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isDone[i]) {
+						TimesPanel.turnaroundTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+						TimesPanel.waitingTime(originalBursts[i], currentProcess.getProcessID());
+						isDone[i] = true;
+					}
+				}
+			}
+		} catch (NullPointerException ex) { }
 		
 		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
-	private void Prio(int[] algorithms, int[] quantumTimes) {
+	private void NPrio(int[] algorithms, int[] quantumTimes) {
 		
 		Process currentProcess = null;
 		if (queue[queueIndex].getIndex() == 1) {
@@ -445,14 +563,24 @@ public class MLFQPolicy {
 				queueIndex++;
 			}
 			System.out.println();
-		} else {
-			// turnaround time, waiting time
 		}
+		
+		try {
+			if (currentProcess.getBurstTime() == 0) {
+				for (int i = 0; i < originalBursts.length; i++) {
+					if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isDone[i]) {
+						TimesPanel.turnaroundTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+						TimesPanel.waitingTime(originalBursts[i], currentProcess.getProcessID());
+						isDone[i] = true;
+					}
+				}
+			}
+		} catch (NullPointerException ex) { }
 		
 		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
-	private void NPrio(int[] algorithms, int[] quantumTimes) {
+	private void Prio(int[] algorithms, int[] quantumTimes) {
 		
 		Process currentProcess = null;
 		
@@ -504,14 +632,24 @@ public class MLFQPolicy {
 			} catch(InterruptedException ex) { }
 			
 			for (int j = 0; j < mlfqProcess.length; j++) {
-				if (ganttChartCounter == mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() != 0 && currentProcess.getPriority() > mlfqProcess[j].getPriority()) {
-					try {
-						queue[0].enqueue(mlfqProcess[j]);
-					} catch (NullPointerException ex) {
-						queue[0].initialProcess(mlfqProcess[j]);
+				if (ganttChartCounter == mlfqProcess[j].getArrivalTime()) {
+					if (mlfqProcess[j].getBurstTime() != 0/* && currentProcess.getPriority() > mlfqProcess[j].getPriority()*/) {
+						try {
+							queue[0].enqueue(mlfqProcess[j]);
+						} catch (NullPointerException ex) {
+							queue[0].initialProcess(mlfqProcess[j]);
+						}
+						
+						ifContinue = false;
+					} else {
+						if (mlfqProcess[j].getBurstTime() == originalBursts[j]) {
+							try {
+								queue[0].enqueue(mlfqProcess[j]);
+							} catch (NullPointerException ex) {
+								queue[0].initialProcess(mlfqProcess[j]);
+							}
+						}
 					}
-					
-					ifContinue = false;
 				}
 			}
 			
@@ -523,15 +661,15 @@ public class MLFQPolicy {
 			}
 		}
 		
-		for (int j = 0; j < mlfqProcess.length; j++) {
-			if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() == originalBursts[j]) {
-				try {
-					queue[0].enqueue(mlfqProcess[j]);
-				} catch (NullPointerException ex) {
-					queue[0].initialProcess(mlfqProcess[j]);
-				}
-			}
-		}
+//		for (int j = 0; j < mlfqProcess.length; j++) {
+//			if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && mlfqProcess[j].getBurstTime() == originalBursts[j]) {
+//				try {
+//					queue[0].enqueue(mlfqProcess[j]);
+//				} catch (NullPointerException ex) {
+//					queue[0].initialProcess(mlfqProcess[j]);
+//				}
+//			}
+//		}
 		
 		if (ifContinue) {
 			if (queue[queueIndex].getIndex() == 0) {
@@ -541,17 +679,27 @@ public class MLFQPolicy {
 					queueIndex++;
 				}
 				System.out.println();
-			} else {
-				// turnaround time, waiting time
 			}
 		}
+		
+		try {
+			if (currentProcess.getBurstTime() == 0) {
+				for (int i = 0; i < originalBursts.length; i++) {
+					if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isDone[i]) {
+						TimesPanel.turnaroundTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+						TimesPanel.waitingTime(originalBursts[i], currentProcess.getProcessID());
+						isDone[i] = true;
+					}
+				}
+			}
+		} catch (NullPointerException ex) { }
 		
 		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
-	public static void main(String[] args) {
-		
-		System.out.println("My MLFQ\n");
+//	public static void main(String[] args) {
+//		
+//		System.out.println("My MLFQ\n");
 		
 //		Process process[] = {new Process(1, 5, 7, 9), 
 //				   			 new Process(2, 1, 5, 2), 
@@ -560,14 +708,14 @@ public class MLFQPolicy {
 //				   			 new Process(5, 4, 2, 6), 
 //				   			 new Process(6, 3, 1, 10)};
 		
-		Process process[] = {new Process(1, 10, 13, 4), 
-	   			 			 new Process(2, 15, 6, 2), 
-	   			 			 new Process(3, 20, 8, 1), 
-	   			 			 new Process(4, 25, 5, 3)};
-		
-		int algo[] = {5, 4};
-		int quantumTime[] = {4, 0};
-		
-		new MLFQPolicy(process, algo, quantumTime);
-	}
+//		Process process[] = {new Process(1, 10, 13, 4), 
+//	   			 			 new Process(2, 15, 6, 2), 
+//	   			 			 new Process(3, 20, 8, 1), 
+//	   			 			 new Process(4, 25, 5, 3)};
+//		
+//		int algo[] = {5, 4};
+//		int quantumTime[] = {4, 0};
+//		
+//		new MLFQPolicy(process, algo, quantumTime);
+//	}
 }

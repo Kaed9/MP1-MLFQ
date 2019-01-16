@@ -29,7 +29,7 @@ public class ShortestJobFirst
 				
 				if (counter < sjfProcess[0].getArrivalTime()) {
 					for(int k = 0; k < sjfProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter, 1);
+						GanttChartPanel.addToGanttChart(0, counter, 0);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -43,11 +43,11 @@ public class ShortestJobFirst
 							if (j == 0) {
 								TimesPanel.responseTime(counter, sjfProcess[i].getArrivalTime(), sjfProcess[i].getProcessID());
 								queue.initialProcess(sjfProcess[i]);
-								GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), counter, 1);
+								GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), counter, 0);
 								System.out.print(sjfProcess[i].getProcessID() + " ");
 							} else {
 								queue.enqueue(sjfProcess[i]);
-								GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), counter, 1);
+								GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), counter, 0);
 								System.out.print(sjfProcess[i].getProcessID() + " ");
 							}
 							counter++;
@@ -72,7 +72,7 @@ public class ShortestJobFirst
 						for(int j = 0; j < sjfProcess.length; j++) {
 							if (counter < sjfProcess[j].getArrivalTime()) {
 								for(int k = counter; k < sjfProcess[j].getArrivalTime(); k++) {
-									GanttChartPanel.addToGanttChart(0, counter, 1);
+									GanttChartPanel.addToGanttChart(0, counter, 0);
 									counter++;
 									try {
 										Thread.sleep(100);
@@ -87,7 +87,7 @@ public class ShortestJobFirst
 									}
 									
 									queue.enqueue(sjfProcess[j]);
-									GanttChartPanel.addToGanttChart(sjfProcess[j].getProcessID(), counter, 1);
+									GanttChartPanel.addToGanttChart(sjfProcess[j].getProcessID(), counter, 0);
 									System.out.print(sjfProcess[j].getProcessID() + " ");
 									
 									counter++;

@@ -32,7 +32,7 @@ public class PreemptivePriorityScheduling {
 				
 				if(counter < prioProcess[0].getArrivalTime()) {
 					for(int k = 0; k < prioProcess[0].getArrivalTime(); k++) {
-						GanttChartPanel.addToGanttChart(0, counter, 1);
+						GanttChartPanel.addToGanttChart(0, counter, 0);
 						counter++;
 						try {
 							Thread.sleep(100);
@@ -70,7 +70,7 @@ public class PreemptivePriorityScheduling {
 									queue.initialProcess(prioProcess[j]);
 									burst[j]--;
 									flag = true;
-									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 1);
+									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 0);
 									System.out.print(prioProcess[j].getProcessID() + " ");
 									
 									if(burst[j] == 0) { prio[j] = -1; }
@@ -78,7 +78,7 @@ public class PreemptivePriorityScheduling {
 									queue.enqueue(prioProcess[j]);
 									burst[j]--;
 									flag = true;
-									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 1);
+									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 0);
 									System.out.print(prioProcess[j].getProcessID() + " ");
 									
 									if(burst[j] == 0) { prio[j] = -1; }
@@ -95,7 +95,7 @@ public class PreemptivePriorityScheduling {
 									queue.enqueue(prioProcess[j]);
 									burst[j]--;
 									flag = true;
-									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 1);
+									GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 0);
 									System.out.print(prioProcess[j].getProcessID() + " ");
 									
 									counter++;
@@ -116,7 +116,7 @@ public class PreemptivePriorityScheduling {
 								queue.enqueue(prioProcess[j]);
 								burst[j]--;
 								flag = true;
-								GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 1);
+								GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), counter, 0);
 								System.out.print(prioProcess[j].getProcessID() + " ");
 								
 								if(burst[j] == 0) { prio[j] = -1; }

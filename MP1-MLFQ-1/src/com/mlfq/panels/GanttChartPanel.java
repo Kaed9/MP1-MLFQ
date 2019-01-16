@@ -84,7 +84,7 @@ public class GanttChartPanel extends JPanel
 				label.setOpaque(true);
 				label.setBackground(MLFQHandler.getColorByProcessId(pID));
 				label.setFont(new Font("Verdana", Font.BOLD, 15));
-				label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+				label.setBorder((pID == 0 ? BorderFactory.createEmptyBorder(1, 1, 1, 1) : BorderFactory.createLineBorder(Color.BLACK, 1)));
 				labelPanel.add(label);
 			} else {
 				label = new JLabel(" ", JLabel.CENTER);

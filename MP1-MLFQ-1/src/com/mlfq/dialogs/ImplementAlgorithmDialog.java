@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -157,6 +159,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 			
 			if (temp.getSelectedIndex() == 5) {
 				tempField.setEnabled(true);
+				tempField.setText("1");
 			} else {
 				tempField.setEnabled(false);
 				tempField.setText("0");
@@ -183,6 +186,35 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 			submitButton.setEnabled(true);
 		}
 	}
+	
+	private boolean checkToBeSubmittedData() {
+		
+		int counter = 0;
+		for (int i = 0; i < selectedAlgo.size(); i++) {
+			if (quantumTime.get(i).getText().isEmpty()) {
+				counter++;
+			}
+		}
+		
+		if (counter != 0) {
+			JOptionPane.showMessageDialog(new JFrame(), "Number field/s cannot be blank.", "ERROR", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		
+		counter = 0;
+		for (int i = 0; i < selectedAlgo.size(); i++) {
+			if (selectedAlgo.get(i).getSelectedIndex() == 5 && Integer.parseInt(quantumTime.get(i).getText()) <= 0) {
+				counter++;
+			}
+		}
+		
+		if (counter != 0) {
+			JOptionPane.showMessageDialog(new JFrame(), "Quantum time of Round Robin algorithm cannot be less than 1.", "ERROR", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		
+		return true;
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent event)
@@ -196,19 +228,21 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 			repaint();
 			revalidate();
 		} else if (event.getSource() == submitButton) {
-			String[] algorithms = new String[selectedAlgo.size()];
-			int[] quantumTimes = new int[quantumTime.size()];
-			for(int i = 0; i < selectedAlgo.size(); i++) {
-				algorithms[i] = selectedAlgo.get(i).getSelectedItem().toString();
-				quantumTimes[i] = Integer.parseInt(quantumTime.get(i).getText());
+			if (checkToBeSubmittedData()) {
+				String[] algorithms = new String[selectedAlgo.size()];
+				int[] quantumTimes = new int[quantumTime.size()];
+				for(int i = 0; i < selectedAlgo.size(); i++) {
+					algorithms[i] = selectedAlgo.get(i).getSelectedItem().toString();
+					quantumTimes[i] = Integer.parseInt(quantumTime.get(i).getText());
+				}
+				
+				TimesPanel.clearComponents();
+				AdditionalInformationPanel.clearComponents();
+				GanttChartPanel.clearComponents();
+				AdditionalInformationPanel.setDisplayAlgoAndPolicy(algorithms, priorityPolicy.getSelectedItem().toString(), quantumTimes);
+				new MLFQHandler(ProcessControlBlockPanel.getTableModel(), selectedAlgo, quantumTime, priorityPolicy.getSelectedIndex());
+				dispose();
 			}
-			
-			TimesPanel.clearComponents();
-			AdditionalInformationPanel.clearComponents();
-			GanttChartPanel.clearComponents();
-			AdditionalInformationPanel.setDisplayAlgoAndPolicy(algorithms, priorityPolicy.getSelectedItem().toString(), quantumTimes);
-			new MLFQHandler(ProcessControlBlockPanel.getTableModel(), selectedAlgo, quantumTime, priorityPolicy.getSelectedIndex());
-			dispose();
 		} else if (event.getSource() == cancelButton) {
 			dispose();
 		}
@@ -226,6 +260,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 				if (priorityPolicy.getSelectedIndex() == 0) {
 					if (temp.getSelectedIndex() == 5) {
 						tempField.setEnabled(true);
+						tempField.setText("1");
 					} else {
 						tempField.setEnabled(false);
 						tempField.setText("0");
