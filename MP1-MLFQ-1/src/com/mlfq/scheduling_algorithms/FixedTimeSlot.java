@@ -94,7 +94,7 @@ public class FixedTimeSlot{
 		}
 		
 		if (queueNumber == selectedAlgoSize) {
-			new RoundRobin(process, quantumTime, ganttChartCounter, queueNumber);
+//			new RoundRobin(process, quantumTime, ganttChartCounter, queueNumber);
 		} else {
 			for (int i = 0; i < roundRobinProcess.length; i++) {
 				int counter = 0;
