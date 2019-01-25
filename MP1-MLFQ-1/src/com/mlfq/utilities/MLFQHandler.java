@@ -47,15 +47,15 @@ public class MLFQHandler
 		if (selectedAlgo.size() == 1) {
 			implementAlgorithm();
 		} else {
+			TimesPanel.initializeTimes(tableModel.getRowCount());
 			if (priorityPolicy == 0) {
 				if (selectedAlgo.get(0).getSelectedIndex() == 5) {
-					TimesPanel.initializeTimes(tableModel.getRowCount());
 					new MLFQPolicy(process, selectedAlgo, quantumTime);
 				} else {
 					implementAlgorithm();
 				}
 			} else {
-//				new FixedTimeSlot();
+				new FixedTimeSlot(process, selectedAlgo, quantumTime);
 			}
 		}
 	}

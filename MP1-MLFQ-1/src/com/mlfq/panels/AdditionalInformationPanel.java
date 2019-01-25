@@ -169,7 +169,7 @@ public class AdditionalInformationPanel extends JPanel
         {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             
-            setFont(new Font("Verdana", Font.PLAIN, 16));
+            setFont(new Font("Verdana", Font.PLAIN, 14));
             setHorizontalAlignment(SwingConstants.CENTER);
             setBackground(new Color(0, 255, 0, (row % 2 == 0 ? 150 : 50)));
 

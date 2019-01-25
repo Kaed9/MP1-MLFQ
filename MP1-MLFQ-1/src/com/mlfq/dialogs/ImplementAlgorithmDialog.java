@@ -103,7 +103,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		quantumTimeLabel = new JLabel(priorityPolicy.getSelectedIndex() == 0 ? "Quantum Time" : "Time Slice", JLabel.CENTER);
 //		quantumTimeLabel.setEnabled(false);
 		quantumTimeField = new JTextField();
-		quantumTimeField.setText("0");
+		quantumTimeField.setText(priorityPolicy.getSelectedIndex() == 0 ? "0" : "1");
 		quantumTimeField.setEnabled(priorityPolicy.getSelectedIndex() == 0 ? false : true);
 		
 		addedPanel = new JPanel(new MigLayout("fillx", "[grow, 20%][grow, 30%][grow, 20%][grow, 30%]"));
@@ -141,7 +141,7 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 			queueNumberLabel = new JLabel("Q" + (i + 1), JLabel.CENTER);
 //			algorithms = new JComboBox<String>(algorithmsArray);
 //			algorithms.addItemListener(this);
-			quantumTimeLabel = new JLabel("Quantum Time", JLabel.CENTER);
+			quantumTimeLabel = new JLabel(priorityPolicy.getSelectedIndex() == 0 ? "Quantum Time" : "Time Slice", JLabel.CENTER);
 //			quantumTimeField = new JTextField();
 			
 			addedPanel = new JPanel(new MigLayout("fillx", "[grow, 20%][grow, 30%][grow, 20%][grow, 30%]"));
@@ -157,12 +157,14 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 //			algorithms.setSelectedIndex(selectedAlgo.get(i).getSelectedIndex());
 //			quantumTimeField.setText("" + quantumTime.get(i).getText());
 			
-			if (temp.getSelectedIndex() == 5) {
-				tempField.setEnabled(true);
-				tempField.setText("1");
-			} else {
-				tempField.setEnabled(false);
-				tempField.setText("0");
+			if (priorityPolicy.getSelectedIndex() == 0) {
+				if (temp.getSelectedIndex() == 5) {
+					tempField.setEnabled(true);
+					tempField.setText("1");
+				} else {
+					tempField.setEnabled(false);
+					tempField.setText("0");
+				}
 			}
 			
 			selectedAlgo.get(i).addItemListener(this);
@@ -202,15 +204,28 @@ public class ImplementAlgorithmDialog extends JDialog implements ActionListener,
 		}
 		
 		counter = 0;
-		for (int i = 0; i < selectedAlgo.size(); i++) {
-			if (selectedAlgo.get(i).getSelectedIndex() == 5 && Integer.parseInt(quantumTime.get(i).getText()) <= 0) {
-				counter++;
+		if (priorityPolicy.getSelectedIndex() == 0) {
+			for (int i = 0; i < selectedAlgo.size(); i++) {
+				if (selectedAlgo.get(i).getSelectedIndex() == 5 && Integer.parseInt(quantumTime.get(i).getText()) <= 0) {
+					counter++;
+				}
 			}
-		}
-		
-		if (counter != 0) {
-			JOptionPane.showMessageDialog(new JFrame(), "Quantum time of Round Robin algorithm cannot be less than 1.", "ERROR", JOptionPane.ERROR_MESSAGE);
-			return false;
+			
+			if (counter != 0) {
+				JOptionPane.showMessageDialog(new JFrame(), "Quantum time of Round Robin algorithm cannot be less than 1.", "ERROR", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+		} else if (priorityPolicy.getSelectedIndex() == 1) {
+			for (int i = 0; i < selectedAlgo.size(); i++) {
+				if (Integer.parseInt(quantumTime.get(i).getText()) <= 0) {
+					counter++;
+				}
+			}
+			
+			if (counter != 0) {
+				JOptionPane.showMessageDialog(new JFrame(), "Time slice cannot be less than 1.", "ERROR", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
 		}
 		
 		return true;

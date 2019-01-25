@@ -696,26 +696,4 @@ public class MLFQPolicy {
 		
 		checkAlgorithm(algorithms, quantumTimes);
 	}
-	
-//	public static void main(String[] args) {
-//		
-//		System.out.println("My MLFQ\n");
-		
-//		Process process[] = {new Process(1, 5, 7, 9), 
-//				   			 new Process(2, 1, 5, 2), 
-//				   			 new Process(3, 2, 3, 5), 
-//				   			 new Process(4, 6, 1, 1), 
-//				   			 new Process(5, 4, 2, 6), 
-//				   			 new Process(6, 3, 1, 10)};
-		
-//		Process process[] = {new Process(1, 10, 13, 4), 
-//	   			 			 new Process(2, 15, 6, 2), 
-//	   			 			 new Process(3, 20, 8, 1), 
-//	   			 			 new Process(4, 25, 5, 3)};
-//		
-//		int algo[] = {5, 4};
-//		int quantumTime[] = {4, 0};
-//		
-//		new MLFQPolicy(process, algo, quantumTime);
-//	}
 }

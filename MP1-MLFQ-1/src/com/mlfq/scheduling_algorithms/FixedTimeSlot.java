@@ -11,658 +11,518 @@ import com.mlfq.panels.GanttChartPanel;
 import com.mlfq.panels.TimesPanel;
 import com.mlfq.utilities.SchedulingAlgorithmsUtilities;
 
-public class FixedTimeSlot{
-	Process[] mainProcess;
-	boolean priority = true; //
-	int[] queue;
-	int timeElapsed, totalConsumedTime, ganttChartCounter, selectedAlgoSize;
-	//note: algorithm: {1:RR, 2:FCFS, 3:SJF, 4:SRTF, 5:Prio, 6:NPrio}
+public class FixedTimeSlot {
 	
-	public FixedTimeSlot(Process[] process, boolean priority, ArrayList<JComboBox<String>> selectedAlgo, ArrayList<JTextField> quantumTime) {
+	private Queue queue;
+	private int queueIndex, ganttChartCounter;
+	private Process[] mlfqProcess;
+	private int[] originalBursts, counter;
+	private boolean[] isResponseDone, isDone, hasArrived;
+	
+	public FixedTimeSlot(Process[] process, ArrayList<JComboBox<String>> selectedAlgo, ArrayList<JTextField> quantumTime) {
 		
-		this.mainProcess = process;
-		this.priority = priority;
-		this.queue = new int[process.length];
-		this.timeElapsed = 0;
-		this.totalConsumedTime = 0;
-		this.ganttChartCounter = 0;
-		this.selectedAlgoSize = selectedAlgo.size();
-		Process[] temp = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length-1, 0);
-		
-		for(int i = 0; i < queue.length; i++) {
-			queue[i] = 1;
+		queue = new Queue();
+		counter = new int[selectedAlgo.size()];
+		for (int i = 0; i < selectedAlgo.size(); i++) {
+			counter[i] = 0;
 		}
 		
-		int[] arrivalTimes = new int[process.length];
-		for (int i = 0; i < process.length; i++) {
-			arrivalTimes[i] = temp[i].getArrivalTime();
+		queueIndex = 0;
+		ganttChartCounter = 0;
+		mlfqProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
+		
+		originalBursts = new int[mlfqProcess.length];
+		isResponseDone = new boolean[mlfqProcess.length];
+		isDone = new boolean[mlfqProcess.length];
+		hasArrived = new boolean[mlfqProcess.length];
+		for (int i = 0; i < mlfqProcess.length; i++) {
+			originalBursts[i] = mlfqProcess[i].getBurstTime();
+			isResponseDone[i] = false;
+			isDone[i] = false;
+			hasArrived[i] = false;
 		}
-		totalConsumedTime = SchedulingAlgorithmsUtilities.totalTime(1, temp) + SchedulingAlgorithmsUtilities.getSmallestNum(arrivalTimes, 1);
+		
+		int[] algorithms = new int[selectedAlgo.size()];
+		int[] quantumTimes = new int[quantumTime.size()];
+		for (int i = 0; i < selectedAlgo.size(); i++) {
+			algorithms[i] = selectedAlgo.get(i).getSelectedIndex();
+			quantumTimes[i] = Integer.parseInt(quantumTime.get(i).getText());
+		}
+		
+		queue.initialProcess(mlfqProcess[0]);
+		
+		for (int i = 1; i < mlfqProcess.length; i++) {
+			if (mlfqProcess[0].getArrivalTime() == mlfqProcess[i].getArrivalTime()) {
+				queue.enqueue(mlfqProcess[i]);
+			}
+		}
+		
+		checkAlgorithm(algorithms, quantumTimes);
+	}
+	
+	private void checkAlgorithm(int[] algorithms, int[] quantumTimes) {
 		
 		new Thread() {
 			public void run() {
-				for(int i = 1; i <= selectedAlgo.size(); i++) {
-					getProcess(selectedAlgo.get(i - 1).getSelectedIndex(), mainProcess, Integer.parseInt(quantumTime.get(i - 1).getText()), i);
+				int count = 0;
+				for (int i = 0; i < mlfqProcess.length; i++) {
+					if (mlfqProcess[i].getBurstTime() == 0) {
+						count++;
+					}
 				}
+				if (count == mlfqProcess.length) {
+					queueIndex = counter.length + 1;
+				}
+				
+				if (queue.getIndex() == 0 && count != mlfqProcess.length) {
+					for (int i = 0; i < mlfqProcess.length; i++) {
+						if (mlfqProcess[i].getBurstTime() != 0) {
+							queue.initialProcess(mlfqProcess[i]);
+							break;
+						}
+					}
+				}
+				
+				try {
+					switch(algorithms[queueIndex]) {
+						case 0:
+							FCFS(quantumTimes[queueIndex], algorithms, quantumTimes);
+							break;
+						case 1:
+							SJF(quantumTimes[queueIndex], algorithms, quantumTimes);
+							break;
+						case 2:
+							SRTF(quantumTimes[queueIndex], algorithms, quantumTimes);
+							break;
+						case 3:
+							Prio(quantumTimes[queueIndex], algorithms, quantumTimes);
+							break;
+						case 4:
+							NPrio(quantumTimes[queueIndex], algorithms, quantumTimes);
+							break;
+						case 5:
+							RoundRobin(quantumTimes[queueIndex], algorithms, quantumTimes);
+							break;
+						default:
+							System.out.println("Internal error. Exiting....");
+							break;
+					}
+				} catch (ArrayIndexOutOfBoundsException ex) { }
 			}
 		}.start();
 	}
 	
-	public void getProcess(int algorithm, Process[] process, int quantumTime, int queueNumber) {
+	// 0 - arrival time; 1 - burst time; 2 - priority
+	private Process getSmallest(int constraint) {
 		
-		switch (algorithm) {
-			case 5: 
-				RoundRobin(process, quantumTime, queueNumber);
-				break;
-			case 0:
-				FCFS(process, quantumTime, queueNumber);
-				break;
-			case 1:
-				SJF(process, quantumTime, queueNumber);
-				break;
-			case 2:
-				SRTF(process, quantumTime, queueNumber);
-				break;
-			case 3:
-				Prio(process, quantumTime, queueNumber);
-				break;
-			case 4: 
-				NPrio(process, quantumTime, queueNumber);
-				break;
-			default:
-				System.out.print("Invalid Input");
+		Process[] process = new Process[queue.getIndex()];
+		int end = queue.getIndex();
+		for (int i = 0; i < end; i++) {
+			process[i] = queue.dequeue();
 		}
-	}
-	
-	public void RoundRobin(Process[] process, int quantumTime, int queueNumber) {
 		
-		Process[] roundRobinProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
-		int burstTime;
-		
-		if (timeElapsed < roundRobinProcess[0].getArrivalTime()) {
-			if (queueNumber == 1) {
-				for (int i = 0; i < roundRobinProcess[0].getArrivalTime(); i++) {
-					System.out.print("0 ");
-					GanttChartPanel.addToGanttChart(0, ganttChartCounter, queueNumber);
-					timeElapsed++;
-					ganttChartCounter++;
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException ex) { }
+		Process temp = null;
+		for (int i = 0; i < process.length - 1; i++) {
+			for (int j = 0; j < process.length - 1; j++) {
+				if (constraint == 0) { // arrival time
+					if (process[i].getArrivalTime() > process[j + 1].getArrivalTime()) {
+						temp = process[i];
+						process[i] = process[j + 1];
+						process[j + 1] = temp;
+					}
+				} else if (constraint == 1) { // burst time
+					if (process[i].getBurstTime() > process[j + 1].getBurstTime()) {
+						temp = process[i];
+						process[i] = process[j + 1];
+						process[j + 1] = temp;
+					}
+				} else if (constraint == 2) { // priority
+					if (process[i].getPriority() > process[j + 1].getPriority()) {
+						temp = process[i];
+						process[i] = process[j + 1];
+						process[j + 1] = temp;
+					}
 				}
 			}
 		}
 		
-		if (queueNumber == selectedAlgoSize) {
-//			new RoundRobin(process, quantumTime, ganttChartCounter, queueNumber);
-		} else {
-			for (int i = 0; i < roundRobinProcess.length; i++) {
-				int counter = 0;
-				burstTime = roundRobinProcess[i].getBurstTime();
-				boolean flag = true;
-				
-				for (int j = 0; j < burstTime; j++) {
-					if (counter < quantumTime && queue[i] == queueNumber) {
-						counter++;
-						timeElapsed = counter;
-						roundRobinProcess[i].setBurstTime(roundRobinProcess[i].getBurstTime() - 1);
-						System.out.print(roundRobinProcess[i].getProcessID() + " ");
-						GanttChartPanel.addToGanttChart(roundRobinProcess[i].getProcessID(), ganttChartCounter, queueNumber);
-						
-						ganttChartCounter++;
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException ex) { }
-					} else {
-						if (flag == true) {
-							queue[i]++;	
-							flag = false;
-						}
-					}				
-				}				
+		for (int i = 0; i < process.length; i++) {
+			try {
+				queue.enqueue(process[i]);
+			} catch (NullPointerException ex) {
+				queue.initialProcess(process[i]);
 			}
 		}
 		
-		mainProcess = roundRobinProcess;
-		System.out.println();
+		return queue.dequeue();
 	}
 	
-	public void FCFS(Process[] process, int quantumTime, int queueNumber) {
+	private void printEmptyProcess(Process currentProcess) {
 		
-		Process[] fcfsProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length-1, 0);
-		
-		Queue queue1 = new Queue();
-		
-		for(int i = 0; i < fcfsProcess.length; i++) {
-			int burstTime = fcfsProcess[i].getBurstTime();
-			int ftsCounter = 0;
+		for (int i = ganttChartCounter; i < currentProcess.getArrivalTime(); i++) {
+			System.out.print("0|" + ganttChartCounter + " ");
+			GanttChartPanel.addToGanttChart(0, ganttChartCounter, queueIndex);
+			ganttChartCounter++;
 			
-			for(int j = 0; j < burstTime; j++) {
-				if(queue[i] == queueNumber) {
-					if (j == 0) {
-						//TimesPanel.responseTime(counter, fcfsProcess[i].getArrivalTime(), fcfsProcess[i].getProcessID());
-					}
-					
-					if (i == 0 && j == 0) {
-						queue1.initialProcess(fcfsProcess[i]);
-						System.out.print(fcfsProcess[i].getProcessID() + " ");
-						fcfsProcess[i].setBurstTime(fcfsProcess[i].getBurstTime() - 1);
-						GanttChartPanel.addToGanttChart(fcfsProcess[i].getProcessID(), ganttChartCounter, queueNumber);
-						ftsCounter++;
-						if(ftsCounter == quantumTime) {
-							if(queueNumber == selectedAlgoSize) {
-								queue[i] = 1;
-							}else 
-								queue[i]++;
-						}
-					} else {
-						try {
-							queue1.enqueue(fcfsProcess[i]);
-						} catch (NullPointerException ex) {
-							queue1.initialProcess(fcfsProcess[i]);
-						}
-						
-						System.out.print(fcfsProcess[i].getProcessID() + " ");
-						fcfsProcess[i].setBurstTime(fcfsProcess[i].getBurstTime() - 1);
-						GanttChartPanel.addToGanttChart(fcfsProcess[i].getProcessID(), ganttChartCounter, queueNumber);
-						ftsCounter++;
-						if(ftsCounter == quantumTime) {
-							if(queueNumber == selectedAlgoSize) {
-								queue[i] = 1;
-							}else
-								queue[i]++;
-						}
-					}
-					
-					timeElapsed++;
-					ganttChartCounter++;
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException ex) { }
-				}						
-			}
-				
-				//TimesPanel.turnaroundTime(counter, fcfsProcess[i].getArrivalTime(), fcfsProcess[i].getProcessID());
-				//TimesPanel.waitingTime(fcfsProcess[i].getBurstTime(), fcfsProcess[i].getProcessID());
+			try {
+				Thread.sleep(100);
+			} catch(InterruptedException ex) { }
 		}
-		
-		mainProcess = fcfsProcess;
 	}
 	
-	public void SJF(Process[] process, int quantumTime,int queueNumber) {
+	private void checkIfProcessArriving(Process currentProcess) {
 		
-		Process[] sjfProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
-		
-		int burst[] = new int[process.length], arrival[] = new int[process.length];
-		boolean isAvailable[] = new boolean[process.length];
-		
-		for(int i = 0; i < process.length; i++) {
-			burst[i] = 0;
-			arrival[i] = sjfProcess[i].getArrivalTime();
-		}
-		
-		Queue queue1 = new Queue();
-		
-		for(int i = 0; i < sjfProcess.length; i++) {
-			if(queue[i] == queueNumber) {
-				int burstTime = sjfProcess[i].getBurstTime();
-				int ftsCounter = 0;
-				
-				if (i == 0 && SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1) != -1) {
-					for(int j = 0; j < burstTime; j++) {
-						if (j == 0) {
-							//TimesPanel.responseTime(counter, sjfProcess[i].getArrivalTime(), sjfProcess[i].getProcessID());
-							queue1.initialProcess(sjfProcess[i]);
-							GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), ganttChartCounter, queueNumber);								
-							System.out.print(sjfProcess[i].getProcessID() + " ");
-							sjfProcess[i].setBurstTime(sjfProcess[i].getBurstTime() - 1);
-							ftsCounter++;
-							if(ftsCounter == quantumTime) {
-								if(queueNumber == selectedAlgoSize)
-									queue[i] = 1;
-								else
-									queue[i]++;
-							}
-						} else {
-							queue1.enqueue(sjfProcess[i]);
-							GanttChartPanel.addToGanttChart(sjfProcess[i].getProcessID(), ganttChartCounter, queueNumber);
-							System.out.print(sjfProcess[i].getProcessID() + " ");
-							sjfProcess[i].setBurstTime(sjfProcess[i].getBurstTime() - 1);
-							ftsCounter++;
-							if(ftsCounter == quantumTime) {
-								if(queueNumber == selectedAlgoSize)
-									queue[i] = 1;
-								else
-									queue[i]++;
-							}
-						}
-						
-						timeElapsed++;
-						ganttChartCounter++;
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException ex) { }
-					}
-					
-					//TimesPanel.turnaroundTime(counter, sjfProcess[i].getArrivalTime(), sjfProcess[i].getProcessID());
-					//TimesPanel.waitingTime(sjfProcess[i].getBurstTime(), sjfProcess[i].getProcessID());
-					
-					burst[i] = -1;
-				} else {
-					for(int j = 1; j < sjfProcess.length; j++) {
-						if (burst[j] != -1 && ganttChartCounter > sjfProcess[j].getArrivalTime()) {
-							isAvailable[j] = true;
-							burst[j] = sjfProcess[j].getBurstTime();
-						}
-					}
-					boolean flag = false;
-					
-					for(int j = 0; j < sjfProcess.length; j++) {
-						burstTime = sjfProcess[j].getBurstTime();
-						ftsCounter = 0;
-						
-						if (isAvailable[j] == true && burst[j] == SchedulingAlgorithmsUtilities.getSmallestNum(burst, 0) && flag == false) {
-							for(int k = 0; k < burstTime; k++) {
-								if (k == 0) {
-									//TimesPanel.responseTime(counter, sjfProcess[j].getArrivalTime(), sjfProcess[j].getProcessID());
-								}
-								
-								try {
-									queue1.enqueue(sjfProcess[j]);
-								} catch (NullPointerException ex) {
-									queue1.initialProcess(sjfProcess[i]);
-								}
-								
-								GanttChartPanel.addToGanttChart(sjfProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-								System.out.print(sjfProcess[j].getProcessID() + " ");
-								sjfProcess[j].setBurstTime(sjfProcess[j].getBurstTime() - 1);
-								ftsCounter++;
-								if(ftsCounter == quantumTime) {
-									if(queueNumber == selectedAlgoSize)
-										queue[j] = 1;
-									else
-										queue[j]++;
-								}
-								
-								timeElapsed++;
-								ganttChartCounter++;
-								try {
-									Thread.sleep(100);
-								} catch (InterruptedException ex) { }
-							}
-							
-							burst[j] = -1;
-							flag = true;
-						} else { continue; }
-						
-						//TimesPanel.turnaroundTime(counter, sjfProcess[j].getArrivalTime(), sjfProcess[j].getProcessID());
-						//TimesPanel.waitingTime(sjfProcess[j].getBurstTime(), sjfProcess[j].getProcessID());
-					}
-				}					
+		for (int j = 0; j < mlfqProcess.length; j++) {
+			if (ganttChartCounter >= mlfqProcess[j].getArrivalTime() && !hasArrived[j] && currentProcess.getProcessID() != mlfqProcess[j].getProcessID()) {
+				try {
+					queue.enqueue(mlfqProcess[j]);
+				} catch (NullPointerException ex) {
+					queue.initialProcess(mlfqProcess[j]);
+				}
+				hasArrived[j] = true;
 			}
 		}
-		mainProcess = sjfProcess;
 	}
 	
-	public void SRTF(Process[] process, int quantumTime,int queueNumber) {
+	private void displayResponseTime(Process currentProcess) {
 		
-		Process[] srtfProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
-		
-		boolean[] isAvailable = new boolean[process.length], responseTimeDone = new boolean[process.length];
-		int[] burst = new int[process.length], tempB = new int[process.length], arrival = new int[process.length];
-		
-		for(int i = 0; i < srtfProcess.length; i++) {
-			responseTimeDone[i] = false;
-			isAvailable[i] = false;
-			burst[i] = srtfProcess[i].getBurstTime();
-			tempB[i] = 0;
-			arrival[i] = srtfProcess[i].getArrivalTime();
-		}
-		
-		Queue queue1 = new Queue();
-		
-		for(int i = timeElapsed; i < totalConsumedTime; i++) {
-			boolean flag = false;
-			
-			for(int j = 0; j < srtfProcess.length; j++) {
-				if (i == srtfProcess[j].getArrivalTime()) {
-					isAvailable[j] = true;
-					tempB[j] = burst[j];
-				} else { continue; }
+		for (int i = 0; i < mlfqProcess.length; i++) {
+			if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isResponseDone[i]) {
+				TimesPanel.responseTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+				isResponseDone[i] = true;
 			}
-			
-			for(int j = 0; j < srtfProcess.length; j++) {
-				int ftsCounter = 0;
-				
-				if (isAvailable[j] = true && SchedulingAlgorithmsUtilities.getSmallestNum(tempB,0) != -1 && burst[j] == SchedulingAlgorithmsUtilities.getSmallestNum(tempB,0) && flag == false && queue[j] == queueNumber) {
-					if (!responseTimeDone[j]) {
-						//TimesPanel.responseTime(counter, srtfProcess[j].getArrivalTime(), srtfProcess[j].getProcessID());
-						responseTimeDone[j] = true;
-					}
-					if (i == SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1)) {
-						queue1.initialProcess(srtfProcess[j]);
-						burst[j]--;
-						tempB[j]--;
-						flag = true;
-						GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-						System.out.print(srtfProcess[j].getProcessID() + " ");
-						ftsCounter++;
-						if(ftsCounter == quantumTime) {
-							if(queueNumber == selectedAlgoSize)
-								queue[j] = 1;
-							else
-								queue[j]++;
-						}
-					} else {
-						try {
-							queue1.enqueue(srtfProcess[j]);
-						} catch (NullPointerException ex) {
-							queue1.initialProcess(srtfProcess[j]);
-						}
-						
-						burst[j]--;
-						tempB[j]--;
-						flag = true;
-						GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-						System.out.print(srtfProcess[j].getProcessID() + " ");
-						ftsCounter++;
-						if(ftsCounter == quantumTime) {
-							if(queueNumber == selectedAlgoSize)
-								queue[j] = 1;
-							else
-								queue[j]++;
-						}
-					}
-				} else { continue; }
-				
-				timeElapsed++;
+		}
+	}
+	
+	private void displayTurnaroundAndWaitingTime(Process currentProcess) {
+		
+		for (int i = 0; i < originalBursts.length; i++) {
+			if (currentProcess.getProcessID() == mlfqProcess[i].getProcessID() && !isDone[i]) {
+				TimesPanel.turnaroundTime(ganttChartCounter, currentProcess.getArrivalTime(), currentProcess.getProcessID());
+				TimesPanel.waitingTime(originalBursts[i], currentProcess.getProcessID());
+				isDone[i] = true;
+			}
+		}
+	}
+	
+	private void FCFS(int quantumTime, int[] algorithms, int[] quantumTimes) {
+		
+		Process currentProcess = getSmallest(0);
+		printEmptyProcess(currentProcess);
+		displayResponseTime(currentProcess);
+		
+		int burst = quantumTime - counter[queueIndex];
+		for (int i = 0; i < burst; i++) {
+			if (currentProcess.getBurstTime() != 0) {
+				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
 				ganttChartCounter++;
+				counter[queueIndex]++;
+				
 				try {
 					Thread.sleep(100);
-				} catch (InterruptedException ex) { }
-				
-				if (i == ((SchedulingAlgorithmsUtilities.totalTime(1, srtfProcess) + SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1)) - 1)) {
-					while (burst[j] != 0) {
-						queue1.enqueue(srtfProcess[j]);
-						burst[j]--;
-						tempB[j]--;
-						flag = true;
-						GanttChartPanel.addToGanttChart(srtfProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-						System.out.print(srtfProcess[j].getProcessID() + " ");
-						ftsCounter++;
-						if(ftsCounter == quantumTime) {
-							if(queueNumber == selectedAlgoSize)
-								queue[j] = 1;
-							else
-								queue[j]++;
-						}
-						
-						timeElapsed++;
-						ganttChartCounter++;
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException ex) { }
-					}
-				}
-				
-				if (burst[j] == 0) {
-					//TimesPanel.turnaroundTime(counter, srtfProcess[j].getArrivalTime(), srtfProcess[j].getProcessID());
-					//TimesPanel.waitingTime(srtfProcess[j].getBurstTime(), srtfProcess[j].getProcessID());
-				}
+				} catch(InterruptedException ex) { }
 			}
 		}
 		
-		for(int i = 0; i < srtfProcess.length; i++) {
-			srtfProcess[i].setBurstTime(burst[i]);
+		if (currentProcess.getBurstTime() == 0) {
+			displayTurnaroundAndWaitingTime(currentProcess);
+		} else {
+			try {
+				queue.enqueue(currentProcess);
+			} catch (NullPointerException ex) {
+				queue.initialProcess(currentProcess);
+			}
+			
+			if (counter[queueIndex] == quantumTime) {
+				counter[queueIndex] = 0;
+				
+				if (queueIndex == counter.length - 1) {
+					queueIndex = 0;
+				} else {
+					queueIndex++;
+				}
+			}
+			
+			System.out.println();
 		}
-		
-		mainProcess = srtfProcess;
+
+		checkIfProcessArriving(currentProcess);
+		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
-	public void Prio(Process[] process, int quantumTime, int queueNumber) {
+	private void SJF(int quantumTime, int[] algorithms, int[] quantumTimes) {
 		
-		Process[] prioProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
-		int[] burst = new int[prioProcess.length];
+		Process currentProcess = getSmallest(1);
+		printEmptyProcess(currentProcess);
+		displayResponseTime(currentProcess);
 		
-		boolean[] isAvailable = new boolean[prioProcess.length], responseTimeDone = new boolean[prioProcess.length];
-		
-		int[] tempB = new int[prioProcess.length], prio = new int[prioProcess.length], arrival = new int[prioProcess.length];
-		
-		for(int i = 0; i < prioProcess.length; i++){
-			isAvailable[i] = false;
-			responseTimeDone[i] = false;
-			burst[i] = prioProcess[i].getBurstTime();
-			tempB[i] = 0;
-			prio[i] = 0;
-			arrival[i] = prioProcess[i].getArrivalTime();
+		int burst = quantumTime - counter[queueIndex];
+		for (int i = 0; i < burst; i++) {
+			if (currentProcess.getBurstTime() != 0) {
+				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
+				ganttChartCounter++;
+				counter[queueIndex]++;
+				
+				try {
+					Thread.sleep(100);
+				} catch(InterruptedException ex) { }
+			}
 		}
 		
-		Queue queue1 = new Queue();
-		
-		for(int i = timeElapsed; i < totalConsumedTime; i++) {			
-			boolean flag = false, done = true, first = false;
-			int ftsCounter = 0;
-			
-			for(int j = 0; j < prioProcess.length; j++) {
-				if(i == prioProcess[j].getArrivalTime()) {
-					isAvailable[j] = true;
-					tempB[j] = burst[j];
-					prio[j] = prioProcess[j].getPriority();
-				} else { continue; }
+		if (currentProcess.getBurstTime() == 0) {
+			displayTurnaroundAndWaitingTime(currentProcess);
+		} else {
+			try {
+				queue.enqueue(currentProcess);
+			} catch (NullPointerException ex) {
+				queue.initialProcess(currentProcess);
 			}
 			
-			first = isAvailable[0];
-			for(int j = 0; j < prioProcess.length; j++) {				
-				if(first != isAvailable[j]) {
-					done = false;
-				}		
-			}
-			
-			if(done == false) {
-				for(int j = 0; j < prioProcess.length; j++) {
-					if(queue[j] == queueNumber) {
-						if(isAvailable[j] = true && flag == false && burst[j] != 0) {
-							if (!responseTimeDone[j]) {
-								//TimesPanel.responseTime(counter, prioProcess[j].getArrivalTime(), prioProcess[j].getProcessID());
-								responseTimeDone[j] = true;
-							}
-							
-							if(i == SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1)) {
-								queue1.initialProcess(prioProcess[j]);
-								burst[j]--;
-								flag = true;
-								GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-								System.out.print(prioProcess[j].getProcessID() + " ");								
-								
-								if(burst[j] == 0) { prio[j] = -1; }
-								
-								ftsCounter++;
-								if(ftsCounter == quantumTime) {
-									if(queueNumber == selectedAlgoSize)
-										queue[j] = 1;
-									else
-										queue[j]++;
-								}
-							} else {
-								try {
-									queue1.enqueue(prioProcess[j]);
-								} catch (NullPointerException ex) {
-									queue1.initialProcess(prioProcess[j]);
-								}
-								
-								burst[j]--;
-								flag = true;
-								GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-								System.out.print(prioProcess[j].getProcessID() + " ");								
-								
-								if(burst[j] == 0) { prio[j] = -1; }
-								
-								ftsCounter++;
-								if(ftsCounter == quantumTime) {
-									if(queueNumber == selectedAlgoSize)
-										queue[j] = 1;
-									else
-										queue[j]++;
-								}
-							}
-						} else { continue; }
-						
-						timeElapsed++;
-						ganttChartCounter++;
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException ex) { }
-						if (i == ((SchedulingAlgorithmsUtilities.totalTime(1, prioProcess) + SchedulingAlgorithmsUtilities.getSmallestNum(arrival, 1)) - 1)) {
-							while (burst[j] != 0) {
-								queue1.enqueue(prioProcess[j]);
-								burst[j]--;
-								flag = true;
-								GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-								System.out.print(prioProcess[j].getProcessID() + " ");
-								ftsCounter++;
-								if(ftsCounter == quantumTime) {
-									if(queueNumber == selectedAlgoSize)
-										queue[j] = 1;
-									else
-										queue[j]++;
-								}
-								
-								timeElapsed++;
-								ganttChartCounter++;
-								try {
-									Thread.sleep(100);
-								} catch (InterruptedException ex) { }
-							}
-						}
-						
-						if (burst[j] == 0) {
-							//TimesPanel.turnaroundTime(counter, prioProcess[j].getArrivalTime(), prioProcess[j].getProcessID());
-							//TimesPanel.waitingTime(prioProcess[j].getBurstTime(), prioProcess[j].getProcessID());
-						}
-					}
-				}	
-			} else if(done) {
-				for(int j = 0; j < prioProcess.length; j++) {
-					if(SchedulingAlgorithmsUtilities.getSmallestNum(prio, 0) == prio[j] && flag == false && queue[j] == queueNumber) {
-						queue1.enqueue(prioProcess[j]);
-						burst[j]--;
-						flag = true;
-						GanttChartPanel.addToGanttChart(prioProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-						System.out.print(prioProcess[j].getProcessID() + " ");
-						
-						if(burst[j] == 0) { prio[j] = -1; }
-						
-						ftsCounter++;
-						if(ftsCounter == quantumTime) {
-							if(queueNumber == selectedAlgoSize)
-								queue[j] = 1;
-							else
-								queue[j]++;
-						}
-					}
-					
-					if (burst[j] == 0) {
-						//TimesPanel.turnaroundTime(counter, prioProcess[j].getArrivalTime(), prioProcess[j].getProcessID());
-						//TimesPanel.waitingTime(prioProcess[j].getBurstTime(), prioProcess[j].getProcessID());
-					}
+			if (counter[queueIndex] == quantumTime) {
+				counter[queueIndex] = 0;
+				
+				if (queueIndex == counter.length - 1) {
+					queueIndex = 0;
+				} else {
+					queueIndex++;
 				}
 			}
+			
+			System.out.println();
 		}
 		
-		mainProcess = prioProcess;				
+		checkIfProcessArriving(currentProcess);
+		checkAlgorithm(algorithms, quantumTimes);
 	}
 	
-	public void NPrio(Process[] process, int quantumTime, int queueNumber) {
+	private void SRTF(int quantumTime, int[] algorithms, int[] quantumTimes) {
 		
-		Process[] nPrioProcess = SchedulingAlgorithmsUtilities.quicksort(process, 0, process.length - 1, 0);
+		Process currentProcess = getSmallest(1);
+		printEmptyProcess(currentProcess);
+		displayResponseTime(currentProcess);
+		
+		int burst = quantumTime - counter[queueIndex];
+		boolean ifContinue = false;
+		for (int i = 0; i < burst; i++) {
+			if (currentProcess.getBurstTime() != 0) {
+				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
+				ganttChartCounter++;
+				counter[queueIndex]++;
 				
-		int prio[] = new int[nPrioProcess.length];
-		
-		for(int i = 0; i < nPrioProcess.length; i++) {
-			prio[i] = nPrioProcess[i].getPriority();
-		}
-		
-		Queue queue1 = new Queue();
-		
-		for(int i = 0; i < nPrioProcess.length; i++) {
-			int ftsCounter = 0;
+				try {
+					Thread.sleep(100);
+				} catch(InterruptedException ex) { }
+			}
 			
-			if (i == 0) {
-				for(int j = 0; j < nPrioProcess[i].getBurstTime(); j++) {							
-					if (j == 0) {
-						queue1.initialProcess(nPrioProcess[i]);
-						//TimesPanel.responseTime(counter, nPrioProcess[i].getArrivalTime(), nPrioProcess[i].getProcessID());
-						GanttChartPanel.addToGanttChart(nPrioProcess[i].getProcessID(), ganttChartCounter, queueNumber);
-						System.out.print(nPrioProcess[i].getProcessID() + " ");
-						ftsCounter++;
-						if(ftsCounter == quantumTime) {
-							if(queueNumber == selectedAlgoSize)
-								queue[i] = 1;
-							else
-								queue[i]++;
-						}						
-					} else {
-						queue1.enqueue(nPrioProcess[i]);
-						GanttChartPanel.addToGanttChart(nPrioProcess[i].getProcessID(), ganttChartCounter, queueNumber);
-						System.out.print(nPrioProcess[i].getProcessID() + " ");
-						ftsCounter++;
-						if(ftsCounter == quantumTime) {
-							if(queueNumber == selectedAlgoSize)
-								queue[i] = 1;
-							else
-								queue[i]++;
-						}
-					}
-					
-					timeElapsed++;
-					ganttChartCounter++;
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException ex) { }
-				}
-				
-				prio[i] = -1;
-			} else {
-				boolean flag = false;
-				for(int j = 0; j < nPrioProcess.length; j++) {
-					
-					if (nPrioProcess[j].getPriority() == SchedulingAlgorithmsUtilities.getSmallestNum(prio, 1) && prio[j] != -1 && flag == false) {						
-						for(int k = 0; k < nPrioProcess[j].getBurstTime(); k++) {
-							if (k == 0) {
-								//TimesPanel.responseTime(counter, nPrioProcess[j].getArrivalTime(), nPrioProcess[j].getProcessID());
-							}
-							
-							try {
-								queue1.enqueue(nPrioProcess[j]);
-							} catch (NullPointerException ex) {
-								queue1.initialProcess(nPrioProcess[i]);
-							}
-							
-							GanttChartPanel.addToGanttChart(nPrioProcess[j].getProcessID(), ganttChartCounter, queueNumber);
-							System.out.print(nPrioProcess[j].getProcessID() + " ");
-							ftsCounter++;
-							if(ftsCounter == quantumTime) {
-								if(queueNumber == selectedAlgoSize)
-									queue[j] = 1;
-								else
-									queue[j]++;
-							}
-							
-							timeElapsed++;
-							ganttChartCounter++;
-							try {
-								Thread.sleep(100);
-							} catch (InterruptedException ex) { }
+			for (int j = 0; j < mlfqProcess.length; j++) {
+				if (ganttChartCounter == mlfqProcess[j].getArrivalTime()) {
+					if (mlfqProcess[j].getBurstTime() != 0 && currentProcess.getBurstTime() > mlfqProcess[j].getBurstTime()) {
+						try {
+							queue.enqueue(mlfqProcess[j]);
+						} catch (NullPointerException ex) {
+							queue.initialProcess(mlfqProcess[j]);
 						}
 						
-						prio[j] = -1;
-						flag = true;
+						ifContinue = false;
 					}
 				}
 			}
-			//TimesPanel.turnaroundTime(counter, nPrioProcess[i].getArrivalTime(), nPrioProcess[i].getProcessID());
-			//TimesPanel.waitingTime(nPrioProcess[i].getBurstTime(), nPrioProcess[i].getProcessID());
+			
+			if(!ifContinue) {
+				break;
+			}
 		}
-		mainProcess = nPrioProcess;
+		
+		if (currentProcess.getBurstTime() == 0) {
+			displayTurnaroundAndWaitingTime(currentProcess);
+		} else {
+			try {
+				queue.enqueue(currentProcess);
+			} catch (NullPointerException ex) {
+				queue.initialProcess(currentProcess);
+			}
+			
+			if (counter[queueIndex] == quantumTime) {
+				counter[queueIndex] = 0;
+				
+				if (queueIndex == counter.length - 1) {
+					queueIndex = 0;
+				} else {
+					queueIndex++;
+				}
+			}
+			
+			System.out.println();
+		}
+		
+		checkIfProcessArriving(currentProcess);
+		checkAlgorithm(algorithms, quantumTimes);
+	}
+	
+	private void Prio(int quantumTime, int[] algorithms, int[] quantumTimes) {
+		
+		Process currentProcess = getSmallest(2);
+		printEmptyProcess(currentProcess);
+		displayResponseTime(currentProcess);
+		
+		int burst = quantumTime - counter[queueIndex];
+		boolean ifContinue = false;
+		for (int i = 0; i < burst; i++) {
+			if (currentProcess.getBurstTime() != 0) {
+				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
+				ganttChartCounter++;
+				counter[queueIndex]++;
+				
+				try {
+					Thread.sleep(100);
+				} catch(InterruptedException ex) { }
+			}
+			
+			for (int j = 0; j < mlfqProcess.length; j++) {
+				if (ganttChartCounter == mlfqProcess[j].getArrivalTime()) {
+					if (mlfqProcess[j].getBurstTime() != 0 && currentProcess.getBurstTime() > mlfqProcess[j].getBurstTime()) {
+						try {
+							queue.enqueue(mlfqProcess[j]);
+						} catch (NullPointerException ex) {
+							queue.initialProcess(mlfqProcess[j]);
+						}
+						
+						ifContinue = false;
+					}
+				}
+			}
+			
+			if(!ifContinue) {
+				break;
+			}
+		}
+		
+		if (currentProcess.getBurstTime() == 0) {
+			displayTurnaroundAndWaitingTime(currentProcess);
+		} else {
+			try {
+				queue.enqueue(currentProcess);
+			} catch (NullPointerException ex) {
+				queue.initialProcess(currentProcess);
+			}
+			
+			if (counter[queueIndex] == quantumTime) {
+				counter[queueIndex] = 0;
+				
+				if (queueIndex == counter.length - 1) {
+					queueIndex = 0;
+				} else {
+					queueIndex++;
+				}
+			}
+			
+			System.out.println();
+		}
+		
+		checkIfProcessArriving(currentProcess);
+		checkAlgorithm(algorithms, quantumTimes);
+	}
+	
+	private void NPrio(int quantumTime, int[] algorithms, int[] quantumTimes) {
+		
+		Process currentProcess = getSmallest(2);
+		printEmptyProcess(currentProcess);
+		displayResponseTime(currentProcess);
+		
+		int burst = quantumTime - counter[queueIndex];
+		for (int i = 0; i < burst; i++) {
+			if (currentProcess.getBurstTime() != 0) {
+				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
+				ganttChartCounter++;
+				counter[queueIndex]++;
+				
+				try {
+					Thread.sleep(100);
+				} catch(InterruptedException ex) { }
+			}
+		}
+		
+		if (currentProcess.getBurstTime() == 0) {
+			displayTurnaroundAndWaitingTime(currentProcess);
+		} else {
+			try {
+				queue.enqueue(currentProcess);
+			} catch (NullPointerException ex) {
+				queue.initialProcess(currentProcess);
+			}
+			
+			if (counter[queueIndex] == quantumTime) {
+				counter[queueIndex] = 0;
+				
+				if (queueIndex == counter.length - 1) {
+					queueIndex = 0;
+				} else {
+					queueIndex++;
+				}
+			}
+			
+			System.out.println();
+		}
+		
+		checkIfProcessArriving(currentProcess);
+		checkAlgorithm(algorithms, quantumTimes);
+	}
+	
+	private void RoundRobin(int quantumTime, int[] algorithms, int[] quantumTimes) {
+		
+		Process currentProcess = queue.dequeue();
+		printEmptyProcess(currentProcess);
+		displayResponseTime(currentProcess);
+		
+		int burst = quantumTime - counter[queueIndex];
+		for (int i = 0; i < burst; i++) {
+			if (currentProcess.getBurstTime() != 0) {
+				System.out.print("P" + currentProcess.getProcessID() + "|" + ganttChartCounter + " ");
+				GanttChartPanel.addToGanttChart(currentProcess.getProcessID(), ganttChartCounter, queueIndex);
+				currentProcess.setBurstTime(currentProcess.getBurstTime() - 1);
+				ganttChartCounter++;
+				counter[queueIndex]++;
+				
+				try {
+					Thread.sleep(100);
+				} catch(InterruptedException ex) { }
+			}
+		}
+		
+		checkIfProcessArriving(currentProcess);
+		
+		if (currentProcess.getBurstTime() == 0) {
+			displayTurnaroundAndWaitingTime(currentProcess);
+		} else {
+			try {
+				queue.enqueue(currentProcess);
+			} catch (NullPointerException ex) {
+				queue.initialProcess(currentProcess);
+			}
+			
+			if (counter[queueIndex] == quantumTime) {
+				counter[queueIndex] = 0;
+				
+				if (queueIndex == counter.length - 1) {
+					queueIndex = 0;
+				} else {
+					queueIndex++;
+				}
+			}
+			
+			System.out.println();
+		}
+		
+		checkAlgorithm(algorithms, quantumTimes);
 	}
 }
